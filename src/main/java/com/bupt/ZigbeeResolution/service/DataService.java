@@ -533,10 +533,12 @@ public class DataService {
                                 break;
                             default:
                                 String version = byte2HexStr(Arrays.copyOfRange(bytes, 15, 21));
+                                System.out.println("IR version : "+version);
                                 json.addProperty("version", version);
                                 break;
                         }
                         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+                        System.out.println("shortAddress : "+shortAddress+" ,endpoint : "+endPoint+" , deviceToken : "+ deviceTokenRelation.getToken()+" , msg : "+json.toString());
                         DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), json.toString());
                         break;
 

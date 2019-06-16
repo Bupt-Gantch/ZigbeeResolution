@@ -9,6 +9,7 @@ import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.InfraredService;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
+import com.bupt.ZigbeeResolution.util.SpringUtil;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -24,11 +25,9 @@ public class RpcMessageCallBack implements MqttCallback{
 	private RpcMqttClient rpcMqttClient;
 	private GatewayMethod gatewayMethod = new GatewayMethodImpl();
 
-	@Autowired
-	InfraredService irService;
+	InfraredService irService = (InfraredService) SpringUtil.getBean("infraredService");
 
-	@Autowired
-	DeviceTokenRelationService deviceTokenRelationService;
+	DeviceTokenRelationService deviceTokenRelationService = (DeviceTokenRelationService)SpringUtil.getBean("deviceTokenRelationService");
 
 	public RpcMessageCallBack(MqttClient rpcMqtt,String token, GatewayGroupService gatewayGroupService, String gatewayName){
 		this.token = token;
@@ -225,7 +224,7 @@ public class RpcMessageCallBack implements MqttCallback{
 				String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
 				String version = "";
 				int matchType = 5;
-
+				System.out.println("Control IR CallBack : "+jsonObject.toString());
                 switch (jsonObject.get("methodName").getAsString()){
 					case "getVersion":
 						if (ip == null) {
@@ -257,9 +256,15 @@ public class RpcMessageCallBack implements MqttCallback{
                             //rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
                         }
 //						gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
-
-						DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(controlDevice.getShortAddress(), (int)controlDevice.getEndpoint());
+						DeviceTokenRelation deviceTokenRelation = null;
+						try {
+							deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(controlDevice.getShortAddress(), (int) controlDevice.getEndpoint());
+						}catch (Exception e){
+							e.printStackTrace();
+						}
+//						deviceTokenRelation = new DeviceTokenRelation(2386,"6090DD01008D1500",1,"8TbjprjWobxomsd0uiOr","newInfrared","5200095","11E4","2d01f2e0-79fd-11e9-8fc2-67fbc94ac784");
                         if (null != deviceTokenRelation) {
+							System.out.println("deviceTokenRelation not null.");
 							if (matchType == 1) {
 								learn_key = irService.get_maxkey_of_airCondition(deviceTokenRelation.getUuid());
 								if(null == learn_key){ // 若从未学习过按键, 空调设备从603开始
@@ -278,8 +283,9 @@ public class RpcMessageCallBack implements MqttCallback{
 							while (null != irService.findKey(deviceTokenRelation.getUuid(), learn_key)){
 								learn_key += 1;
 							}
+							System.out.println("IR_LEARN. IP : "+ip+" , matchType : "+matchType+" , learn_key : "+learn_key);
 							gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
-
+							System.out.println("IR add Key");
                         	irService.addKey(deviceTokenRelation.getUuid(), learn_key, key_name, matchType);
 						}
                         break;
@@ -395,6 +401,14 @@ public class RpcMessageCallBack implements MqttCallback{
 						}
 						gatewayMethod.controlIR(controlDevice, ip, null, selectCacheMethod);
 						break;
+					case "control":
+						String key = jsonObject.get("FuncKey").getAsString();
+						if (ip == null) {
+							System.out.println("Gateway offline");
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+						}
+
+
                 }
                 break;
 		}
