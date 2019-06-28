@@ -4,6 +4,7 @@ import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.service.*;
+import com.bupt.ZigbeeResolution.utils.Operation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Operation(name="场景管理")
 @RestController
 @RequestMapping("/api/v1/scene")
 public class SceneController{
@@ -39,6 +41,7 @@ public class SceneController{
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Operation(name="添加场景")
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
     public String addScene(@RequestBody String sceneInfo){
@@ -107,6 +110,7 @@ public class SceneController{
         return  "success";
     }
 
+    @Operation(name="获取所有场景")
     @RequestMapping(value = "/getAllScene/{customerId}", method = RequestMethod.GET)
     @ResponseBody
     public String getAllScene(@PathVariable("customerId") Integer customerId){
@@ -140,6 +144,7 @@ public class SceneController{
         return sceneArray.toString();
     }
 
+    @Operation(name="获取场景")
     @RequestMapping(value = "/getScene/{scene_id}", method = RequestMethod.GET)
     @ResponseBody
     public List<SceneDevice> getScene(@PathVariable("scene_id")Integer scene_id){
@@ -147,6 +152,7 @@ public class SceneController{
         return sceneDeviceList;
     }
 
+    @Operation(name="通过网关获取场景")
     @RequestMapping(value = "/getSceneByGateway/{gatewayName}", method = RequestMethod.GET)
     @ResponseBody
     public String getSceneByGateway(@PathVariable("gatewayName")String gatewayName){
@@ -184,6 +190,7 @@ public class SceneController{
         return sceneArray.toString();
     }
 
+    @Operation(name="删除场景")
     @RequestMapping(value="/deleteScene/{scene_id}", method = RequestMethod.DELETE)
     @ResponseBody
     public String deleteScene(@PathVariable("scene_id")Integer scene_id){
@@ -217,6 +224,7 @@ public class SceneController{
         return "success";
     }
 
+    @Operation(name="绑定选择器")
     @RequestMapping(value = "/bindSelector", method = RequestMethod.POST)
     @ResponseBody
     public String bindSceneSelector(@RequestBody String selectorInfo){
@@ -256,6 +264,7 @@ public class SceneController{
         return "success";
     }
 
+    @Operation(name="使用场景")
     @RequestMapping(value = "/useScene/{scene_id}", method = RequestMethod.POST)
     @ResponseBody
     public String useScene(@PathVariable("scene_id")Integer scene_id){
@@ -273,6 +282,7 @@ public class SceneController{
 
         return "success";
     }
+    @Operation(name="关联场景")
     @RequestMapping(value = "/relatingScene/{main_scene_id}", method = RequestMethod.POST)
     @ResponseBody
     public String relatingScene(@PathVariable("main_scene_id")Integer main_scene_id, @RequestBody String relationInfo){
@@ -283,7 +293,8 @@ public class SceneController{
         }
         return "success";
     }
-/*    @RequestMapping(value = "/getBindScene/{deviceId}", method = RequestMethod.POST)
+/*  @Operation(name="获取已绑定场景")
+    @RequestMapping(value = "/getBindScene/{deviceId}", method = RequestMethod.POST)
     @ResponseBody
     public String getBindScene(@PathVariable String deviceId){
         Device device = new Device();

@@ -17,9 +17,11 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://118.190.202.148:3306/BUPT_IOT?characterEncoding=UTF-8   #jdbc:mysql://localhost:3306/dbgirl_test?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+    url: jdbc:mysql://118.190.202.148:3306/BUPT_IOT?serverTimezone=GMT&characterEncoding=UTF-8   #jdbc:mysql://localhost:3306/dbgirl_test?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
     username: root
     password: Gantch815
+#    password: Gantch815   url: jdbc:mysql://118.190.202.148:3306/BUPT_IOT?characterEncoding=UTF-
+
 
 mybatis:
   configuration:
@@ -31,4 +33,6 @@ mybatis:
     default-statement-timeout: 25000
   type-aliases-package: org.spring.springboot.domain
   type-handlers-package: com.tjlcast.server.typeHandler
+
+
 

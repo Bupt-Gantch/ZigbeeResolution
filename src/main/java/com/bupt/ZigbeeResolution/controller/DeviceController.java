@@ -9,6 +9,7 @@ import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.SceneSelectorRelationService;
+import com.bupt.ZigbeeResolution.utils.Operation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Operation(name="物接入")
 @RestController
 @RequestMapping("api/v1/device")
 public class DeviceController {
@@ -35,6 +37,7 @@ public class DeviceController {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Operation(name="删除设备")
     @RequestMapping(value = "/deleteDevice/{deviceId}", method = RequestMethod.DELETE)
     @ResponseBody
     public String deleteDevice(@PathVariable("deviceId")String deviceId ){
@@ -69,6 +72,7 @@ public class DeviceController {
         return "success";
     }
 
+    @Operation(name="设备入网")
     @RequestMapping(value = "/addNewDevice/{gatewayName}", method = RequestMethod.GET)
     @ResponseBody
     public String addMewDevice(@PathVariable("gatewayName") String gatewayName){
@@ -87,6 +91,7 @@ public class DeviceController {
         return "success";
     }
 
+    @Operation(name="场景绑定设备")
     @RequestMapping(value = "/sceneSelectorBindDevice", method = RequestMethod.POST)
     @ResponseBody
     public String sceneSelectorBindDevice(@RequestBody String deviceInfo){
@@ -142,6 +147,7 @@ public class DeviceController {
         return "success";
     }
 
+    @Operation(name="获取场景绑定的设备")
     @RequestMapping(value = "/getSceneSelectorBind/{sceneSelectorId}", method = RequestMethod.GET)
     @ResponseBody
     public String getSceneSelectorBind(@PathVariable("sceneSelectorId") String sceneSelectorId){
@@ -165,6 +171,7 @@ public class DeviceController {
         return jsonObject.toString();
     }
 
+    @Operation(name="删除场景已经绑定的设备")
     @RequestMapping(value = "/deleteSceneSelectorBind", method = RequestMethod.DELETE)
     @ResponseBody
     public String deleteSceneSelector(@RequestBody String deviceInfo){
@@ -195,6 +202,20 @@ public class DeviceController {
                 return "error|数据库删除失败";
             }
         }
+        return "success";
+    }
+
+    @Operation(name="测试")
+    @RequestMapping(value = "/test/{gatewayName}", method = RequestMethod.GET)
+    @ResponseBody
+    public String test(@PathVariable("gatewayName") String gatewayName){
+        int i = 1;
+        if(i==1){
+            //在此试验是否写入数据库
+            logger.error("测试错误");
+        }
+        logger.info("测试信息");
+        logger.warn("测试警告");
         return "success";
     }
 }
