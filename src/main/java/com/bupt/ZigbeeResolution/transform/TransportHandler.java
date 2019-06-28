@@ -147,7 +147,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                 }else if(byteA3 == 81) {
                     System.out.println(Arrays.toString(msg));
                     String s = new String(msg);
-                    if (s.length() == 16) {
+                    /*if (s.length() == 16) {
                         name = s.substring(6, 11);
                         pwd = s.substring(12, 16);
                     } else if (s.length() == 17) {
@@ -159,12 +159,19 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     } else if (s.length() == 19) {
                         name = s.substring(6,14);
                         pwd = s.substring(15,19);
-                    }
-                    /*  用空格分割网关名和密码
+                    }*/
+//                    int length = s.length();
+//                    name = s.substring(6, length - 5);
+//                    pwd = s.substring(length - 4, length);
+                    /*  用空格分割网关名和密码 */
                     JsonObject item = dataService.getItem(s.substring(6, s.length()));
+                    if(item == null) {
+                        System.out.println("ERROR: gateway info missed");
+                        return;
+                    }
                     name = item.get("name").getAsString();
                     pwd = item.get("pwd").getAsString();
-                    */
+
                     GatewayGroup gatewayGroup = new GatewayGroup(name, ips, ctxip);
                     if(gatewayGroupService.getGatewayGroup(name)!=null){
                         gatewayGroupService.removeGatewayGroupByName(name);

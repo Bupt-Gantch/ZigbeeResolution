@@ -9,6 +9,10 @@ target/
 .settings
 .springBeans
 
+### Config ###
+.properties
+.yml
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
