@@ -141,10 +141,10 @@
             <version>${mybatis-spring-boot}</version>
         </dependency>
 
-        <dependency>
-            <groupId>de.unkrig.commons</groupId>
-            <artifactId>commons-nullanalysis</artifactId>
-            <version>1.2.12</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>de.unkrig.commons</groupId>-->
+            <!--<artifactId>commons-nullanalysis</artifactId>-->
+            <!--<version>1.2.12</version>-->
+        <!--</dependency>-->
     </dependencies>
 </project>

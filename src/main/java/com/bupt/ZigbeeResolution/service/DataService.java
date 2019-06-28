@@ -733,7 +733,7 @@ public class DataService {
                                         data.addProperty("alarm", 0D);
                                     }
                                     for (int j = 2; j < 8; j++){  // 暂时只考虑低位字节，高位字节全0不考虑
-                                        data.addProperty(attribute_array[j], (double) attribute_value[j]);//
+                                        data.addProperty(attribute_array[j], (double) attribute_value[j]);
                                     }
 //                                    if (alarm== 1 || alarm == 21) {   // 人体红外报警、水浸
 //                                        data.addProperty("alarm", 1D);
@@ -1128,20 +1128,21 @@ public class DataService {
     }
 
     public JsonObject getItem(String s){
+        int length = s.length();
         if (s.length() <= 0)
             return null;
         JsonObject item = new JsonObject();
 
         int i = 0;
         String tmp = "";
-        while (i <= s.length() - 1 || s.charAt(i) != ' ') {
+        while (i <= length - 1 && s.charAt(i) != ' ') {
             tmp += s.charAt(i);
             i++;
         }
         i ++; // skip 0x20
         item.addProperty("name", tmp);
         tmp = "";
-        while (i <= s.length() - 1) {
+        while (i <= length - 1) {
             tmp += s.charAt(i);
             i++;
         }
