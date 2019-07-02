@@ -970,6 +970,37 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
+    public void setSoundLightAlarmState(Device device, byte state, String ip){
+        System.out.println("进入setSoundLightAlarmState");
+        byte[] bytes = new byte[24];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x18;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x82;
+        bytes[index++] = (byte) 0x0D;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index=index+TransportHandler.toBytes(device.getShortAddress()).length;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = state;
+        bytes[index++] = (byte) 0x3C;
+        bytes[index] = (byte) 0x00;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        System.out.println("下发指令");
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
     public void setAlarmState(Device device, byte state, String ip,int time) {
         System.out.println("进入setAlarmState");
         byte[] bytes = new byte[24];

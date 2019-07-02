@@ -116,6 +116,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
+        System.out.println("orgin-msg:" + SocketServer.bytesToHexString(msg));
         String name = null;
         String pwd = null;
         byte byteA3 = msg[2];

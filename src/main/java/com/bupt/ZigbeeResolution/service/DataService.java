@@ -952,6 +952,9 @@ public class DataService {
             case "6301":
                 type = "newInfrared";
                 break;
+            case "0304":
+                type = "SoundLightAlarm";
+                break;
             case "0202":
                 type = "curtain";
                 break;
