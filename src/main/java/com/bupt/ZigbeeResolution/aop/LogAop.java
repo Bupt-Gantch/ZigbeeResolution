@@ -77,12 +77,12 @@ public class LogAop {
 				if (method.isAnnotationPresent(Operation.class)) {
 				    // 当前执行方法操作的名称)
 					methodOperation = method.getAnnotation(Operation.class).name();
-					String user = "";
-					try {
-						user = request.getParameter("user");
-					} catch (Exception e) {
-
-					}
+					String user = "testuser";
+//					try {
+//						user = request.getParameter("user");
+//					} catch (Exception e) {
+//
+//					}
 					LoggingEvent loggingEvent = new LoggingEvent();
 					System.err.println("ip地址为" + request.getRemoteHost() +" "+ user  +" 执行了 " + controllerOperation + " 下的  " + methodOperation + " 操作！");
 					logger.info("ip地址为" + request.getRemoteHost() + " "+ user +  " 执行了 " + controllerOperation + " 下的  " + methodOperation + " 操作！");
