@@ -9,6 +9,7 @@ import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.netty.channel.Channel;
 
 import java.util.List;
 
@@ -440,7 +441,9 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+        Channel channel = SocketServer.getMap().get(ip);
+        System.out.println("IR_LEARN : "+channel.remoteAddress());
+        channel.writeAndFlush(sendMessage);
     }
 
     public void IR_penetrate(Device device, String ip, String version, int seq, int matchType, int key){
@@ -655,6 +658,43 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         index +=  TransportHandler.toBytes(name).length;
         bytes[index++] = (byte) 0x01; // IR Id TODO
         bytes[index] = (byte) 0x00;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_Control(Device device, String ip,String version,int key) {
+        byte[] bytes = new byte[30];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & 21);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x0C;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03;
+        bytes[index++] = (byte) 0x06;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x0b;
+        byte[] version_byte = TransportHandler.toBytes(version);
+        System.arraycopy(version_byte, 0, bytes, index, version_byte.length);
+        index = index + version_byte.length;
+
+        bytes[index++] = (byte) 0x82;
+        bytes[index++] = (byte) 0x01;
+
+        bytes[index++] = (byte) (0x00FF & key);
+        bytes[index++] = (byte) (0xFF & key>>8);
+        bytes[index] = (byte) 0x82;
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
@@ -924,6 +964,37 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x00;
         bytes[index] = state;
 
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        System.out.println("下发指令");
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void setSoundLightAlarmState(Device device, byte state, String ip){
+        System.out.println("进入setSoundLightAlarmState");
+        byte[] bytes = new byte[24];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x18;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x82;
+        bytes[index++] = (byte) 0x0D;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index=index+TransportHandler.toBytes(device.getShortAddress()).length;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = state;
+        bytes[index++] = (byte) 0x3C;
+        bytes[index] = (byte) 0x00;
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         System.out.println("下发指令");

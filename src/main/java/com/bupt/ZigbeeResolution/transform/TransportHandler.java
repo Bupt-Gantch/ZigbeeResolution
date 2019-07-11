@@ -116,9 +116,11 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
+        System.out.println("orgin-msg:" + SocketServer.bytesToHexString(msg));
         String name = null;
         String pwd = null;
         byte byteA3 = msg[2];
+//        byte byteA3 = 0x0b;
         Channel channel = ctx.channel();
         String ctxip = channel.toString();
         String ip = getRemoteAddress(ctx);
@@ -221,6 +223,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     }*/
                     String gatewayName = gatewayGroupService.getGatewayNameByIp(ips);
                     dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService, sceneRelationService);
+//                    dataService.resolution(msg, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService, sceneRelationService);
                     //chs.writeAndFlush(msg);
                 }
             }

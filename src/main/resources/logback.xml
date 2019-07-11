@@ -133,8 +133,10 @@ xsi:noNamespaceSchemaLocation="http://www.padual.com/java/logback.xsd">
             <dataSource class="org.apache.commons.dbcp2.BasicDataSource">
                 <driverClassName>com.mysql.jdbc.Driver</driverClassName>
                 <url>jdbc:mysql://118.190.202.148:3306/BUPT_IOT?serverTimezone=GMT&amp;characterEncoding=UTF-8</url>
+                <!--<url>jdbc:mysql://127.0.0.1:3306/crm?serverTimezone=GMT&amp;characterEncoding=UTF-8</url>-->
                 <username>root</username>
                 <password>Gantch815</password>
+                <!--<password>123456</password>-->
                 <!--<sqlDialect class="ch.qos.logback.core.db.dialect.MySQLDialect" />  -->
             </dataSource>
         </connectionSource>
