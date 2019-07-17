@@ -18,6 +18,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 public class RpcMessageCallBack implements MqttCallback{
 	private String token;
@@ -274,6 +275,9 @@ public class RpcMessageCallBack implements MqttCallback{
 						matchType = jsonObject.get("matchType").getAsInt();
 //                        Integer learn_key = jsonObject.get("key").getAsInt();
                         String key_name = jsonObject.get("name").getAsString();
+                        Integer customerId = jsonObject.get("customerId").getAsInt();//用户ID
+                        Integer buttonId = jsonObject.get("buttonId").getAsInt();//按钮ID
+                        Integer panelId = jsonObject.get("panelId").getAsInt();//面板ID
 						Integer learn_key = null;
 
                         if (ip == null) {
@@ -311,7 +315,7 @@ public class RpcMessageCallBack implements MqttCallback{
 							System.out.println("IR_LEARN. IP : "+ip+" , matchType : "+matchType+" , learn_key : "+learn_key);
 							gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
 							System.out.println("IR add Key");
-                        	irService.addKey(deviceTokenRelation.getUuid(), learn_key, key_name, matchType);
+                        	irService.addKey(deviceTokenRelation.getUuid(), learn_key, key_name, matchType, customerId, buttonId, panelId, 0);
 						}
                         break;
 

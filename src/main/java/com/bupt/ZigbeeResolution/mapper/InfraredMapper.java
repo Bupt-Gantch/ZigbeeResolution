@@ -2,14 +2,16 @@ package com.bupt.ZigbeeResolution.mapper;
 
 import com.bupt.ZigbeeResolution.data.InfraredModel;
 import org.apache.ibatis.annotations.*;
+import org.junit.runners.Parameterized.Parameters;
 
 @Mapper
 public interface InfraredMapper {
     @Select("SELECT `key` FROM infrared_model WHERE deviceId = #{deviceId} AND type = #{matchType} AND brand_cn = #{brand_cn} AND name = #{name}")
     Integer select_by_deviceid_type_brandCN_name(String deviceId, Integer matchType, String brand_cn, String name);
 
-    @Insert("INSERT INTO infrared_model(deviceId, `key`, name, type) VALUES(#{deviceId}, #{key}, #{name}, #{matchType})")
-    void insert(@Param("deviceId")String deviceId, @Param("key")Integer key, @Param("name")String name, @Param("matchType")Integer matchType);
+    @Insert("INSERT INTO infrared_model(deviceId, `key`, name, type, customerId, buttonId, panelId, status) VALUES(#{deviceId}, #{key}, #{name}, #{matchType}, #{customerId}, #{buttonId}, #{panelId}, #{status})")
+    void insert(@Param("deviceId")String deviceId, @Param("key")Integer key, @Param("name")String name, @Param("matchType")Integer matchType, 
+    		@Param("customerId")Integer customerId, @Param("buttonId")Integer buttonId, @Param("panelId")Integer panelId, @Param("status")Integer status);
 
     @Select("SELECT MAX(`key`) FROM infrared_model WHERE `key` > 602 AND deviceId = #{deviceId} AND type = 1")
     Integer select_maxnum_of_airCondition(String deviceId);
