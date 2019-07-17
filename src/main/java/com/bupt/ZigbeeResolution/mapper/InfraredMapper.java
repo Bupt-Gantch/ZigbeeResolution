@@ -25,4 +25,9 @@ public interface InfraredMapper {
 
     @Delete("DELETE FROM infrared_model WHERE deviceId = #{deviceId}")
     void delete_all_key(String deviceId);
+
+    @Update("update infrared_model set state = 1 where `key` = #{key} AND deviceId = #{deviceId}")
+    void updateStateByResult(@Param("deviceId")String deviceId, @Param("key")Integer key);
+
+
 }

@@ -6,6 +6,7 @@ import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+@Service
 public class DataService {
     private static List<Object> list = new LinkedList<Object>();
 
@@ -27,10 +29,15 @@ public class DataService {
     int[] endPoints;
     int taskNameLength;
 
+    @Autowired
+    private InfraredService infraredService;
 
+    @Autowired
+    private DeviceTokenRelationService deviceTokenRelationService;
 
     public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, GatewayGroupService gatewayGroupService, SceneRelationService sceneRelationService) throws Exception {
         System.out.println("进入");
+        System.out.println("返回码："+byte2HexStr(bytes));
         byte Response = bytes[0];
         switch (Response){
             case 0x01:
@@ -322,30 +329,61 @@ public class DataService {
                 }
                 break;
 
-            case 0x26:  // 红外宝
+            case (byte)0xa7:  // 红外宝
                 int index = 1;
                 int total_length = bytes[index++] & 0xff; // 总长度
                 shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, index, index+2));
                 index +=2;
                 endPoint = bytes[index++];
+
                 switch(bytes[index++]){
-                    case 0x02:  // 学习
+                    case 0x03:  // 学习
+                        System.out.println("学习");
+                        Integer learnResult = Integer.parseInt(String.valueOf(bytes[22]));
+                        System.out.println("learnResult="+learnResult);
+
+                        String learnKey1 = byte2HexStr(Arrays.copyOfRange(bytes, 20, 22));
+                        System.out.println("learnKey1="+learnKey1);
+                        String low=byte2HexStr(Arrays.copyOfRange(bytes, 20, 21));
+                        String high=byte2HexStr(Arrays.copyOfRange(bytes, 21, 22));
+                        String learnKey2=high+low;
+                        System.out.println("learnKey2="+learnKey2);
+                        Integer learnKey=Integer.parseInt(learnKey2,16);
+                        System.out.println("learnKey="+learnKey);
+
+
+                        DeviceTokenRelation deviceTokenRelation = null;
+                        //deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress,endPoint);
+
+                        //保存红外宝学习码
+                        if(learnResult==0){  //
+                            System.out.println("学习成功");
+                            //infraredService.updateState(deviceTokenRelation.getUuid(),learnKey); //修改学习码状态为成功
+                            infraredService.updateState("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey); //修改学习码状态为成功
+                        }else if(learnResult==1){
+                            System.out.println("学习失败");
+                           // infraredService.deleteKey(deviceTokenRelation.getUuid(),learnKey); //删除失败的学习码
+                        }else{
+                            System.out.println("存储器空间已满");
+                          //  infraredService.deleteKey(deviceTokenRelation.getUuid(),learnKey);
+                        }
+
                         break;
-                    case 0x03: // 透传
-                        System.out.print("infrared");
-                        break;
-                    case 0x04: // 保存数据到网关
-                        break;
-                    case 0x05: // 查询网关保存的红外数据
-                        break;
-                    case 0x06: // 发送网关保存的红外数据
-                        break;
-                    case 0x07: // 删除网关保存的红外数据
-                        break;
-                    case 0x09: // 缓存透传指令
-                        break;
-                    case 0x0a: // 查询缓存条目数量
-                        break;
+//                    case 0x03: // 透传
+//                        System.out.print("infrared");
+//                        break;
+//                    case 0x04: // 保存数据到网关
+//                        break;
+//                    case 0x05: // 查询网关保存的红外数据
+//                        break;
+//                    case 0x06: // 发送网关保存的红外数据
+//                        break;
+//                    case 0x07: // 删除网关保存的红外数据
+//                        break;
+//                    case 0x09: // 缓存透传指令
+//                        break;
+//                    case 0x0a: // 查询缓存条目数量
+//                        break;
                     default:break;
                 }
                 break;
