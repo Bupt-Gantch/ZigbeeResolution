@@ -34,4 +34,7 @@ public class InfraredService {
         irMapper.delete_all_key(deviceId);
     }
 
+    public void updateState(String deviceId, Integer key){
+        irMapper.updateStateByResult(deviceId,key);
+    }
 }
