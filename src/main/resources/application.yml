@@ -1,0 +1,40 @@
+server:
+  port: 8800
+
+socket:
+  bind_address: 127.0.0.1
+  bind_port: 8090
+  netty:
+    leak_detector_level: DISABLED
+    boss_group_thread_count: 1
+    worker_group_thread_count: 12
+
+spring:
+  application:
+    name: ZigbeeResolution
+  profiles:
+    active: prod
+
+#  datasource:
+#    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://118.190.202.148:3306/BUPT_IOT?characterEncoding=UTF-8   #jdbc:mysql://localhost:3306/dbgirl_test?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+#    username: root
+#    password: Gantch815
+
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/BUPT_IOT?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: 123456
+
+mybatis:
+  configuration:
+    cache-enabled: true
+    lazy-loading-enabled: false
+    aggressive-lazy-loading: false
+    multiple-result-sets-enabled: true
+    default-executor-type: reuse
+    default-statement-timeout: 25000
+  type-aliases-package: org.spring.springboot.domain
+  type-handlers-package: com.tjlcast.server.typeHandler
+
