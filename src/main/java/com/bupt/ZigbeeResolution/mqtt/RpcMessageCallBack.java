@@ -35,6 +35,7 @@ public class RpcMessageCallBack implements MqttCallback{
 		this.rpcMqttClient = new RpcMqttClient(gatewayName,token, gatewayGroupService);
 		this.gatewayGroupService = gatewayGroupService;
 	}
+	public RpcMessageCallBack(){}
 
 	@Override
 	public void connectionLost(Throwable arg0) {

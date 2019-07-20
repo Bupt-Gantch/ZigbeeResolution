@@ -2,6 +2,7 @@ package com.bupt.ZigbeeResolution.mapper;
 
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import org.apache.ibatis.annotations.*;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
