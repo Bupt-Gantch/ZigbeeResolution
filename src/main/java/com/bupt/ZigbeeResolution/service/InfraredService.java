@@ -1,6 +1,6 @@
 package com.bupt.ZigbeeResolution.service;
 
-import com.bupt.ZigbeeResolution.data.CustomerLearn;
+import com.bupt.ZigbeeResolution.data.Learn;
 import com.bupt.ZigbeeResolution.mapper.InfraredMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,13 +42,23 @@ public class InfraredService {
         irMapper.updateStateByResult(deviceId, key);
     }
 
-    public List<CustomerLearn> getCustomerLearns(String deviceId, Integer customerId) {
-        List<CustomerLearn> customerLearns = irMapper.selectCustomerLearn(deviceId, customerId);
-        return customerLearns;
+    public List<Learn> getCustomerLearns(String deviceId, Integer customerId) {
+        List<Learn> learns = irMapper.selectCustomerLearn(deviceId, customerId);
+        return learns;
     }
 
     public List<String> getKeyNames(String deviceId, Integer customerId, Integer panelId) {
         List<String> keyNames = irMapper.selectKeyNames(deviceId, customerId, panelId);
         return keyNames;
+    }
+
+    public List<String> getDeviceLearns(String deviceId, Integer panelId){
+        List<String> deviceLearns = irMapper.selectDevicelearns(deviceId,panelId);
+        return  deviceLearns;
+    }
+
+    public List<Learn> getAllLearns(String deviceId){
+        List<Learn> allLearns = irMapper.selectAllLearns(deviceId);
+        return allLearns;
     }
 }
