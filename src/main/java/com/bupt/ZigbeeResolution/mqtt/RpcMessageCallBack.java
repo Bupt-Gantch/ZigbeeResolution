@@ -316,6 +316,7 @@ public class RpcMessageCallBack implements MqttCallback{
 							System.out.println("IR_LEARN. IP : "+ip+" , matchType : "+matchType+" , learn_key : "+learn_key);
 							gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
 							System.out.println("IR add Key");
+							//添加了customerId、buttonId、panelId、state
                         	irService.addKey(deviceTokenRelation.getUuid(), learn_key, key_name, matchType, customerId, buttonId, panelId, 0);
 						}
                         break;
