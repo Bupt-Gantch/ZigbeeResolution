@@ -7,13 +7,13 @@ import lombok.Data;
  */
 
 @Data
-public class CustomerLearn {
+public class Learn {
     String panelName;
     String name;
 
     @Override
     public String toString() {
-        return "CustomerLearn{" +
+        return "Learn{" +
                 "panelName='" + panelName + '\'' +
                 ", name='" + name + '\'' +
                 '}';
