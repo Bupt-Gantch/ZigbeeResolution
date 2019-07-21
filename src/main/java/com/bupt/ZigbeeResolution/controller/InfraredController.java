@@ -1,6 +1,6 @@
 package com.bupt.ZigbeeResolution.controller;
 
-import com.bupt.ZigbeeResolution.data.CustomerLearn;
+import com.bupt.ZigbeeResolution.data.Learn;
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
@@ -11,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
 import java.util.List;
@@ -37,63 +34,100 @@ public class InfraredController {
 
     @Autowired
     private DeviceTokenRelationService deviceTokenRelationService;
-    @PostMapping("/learn/{shortAddress}/{endPoint}/{customerId}")
-    @ResponseBody
-    public String getCustomerLearn(@PathVariable("shortAddress") String shortAddress,
-                                   @PathVariable("endPoint") Integer endPoint,
-                                   @PathVariable("customerId") Integer customerId) {
 
-        JsonObject jsonObject = new JsonObject();
+    @GetMapping("/learn/{shortAddress}/{endPoint}/{customerId}")
+    @ResponseBody
+    public List<Learn> getCustomerLearn(@PathVariable("shortAddress") String shortAddress,
+                                        @PathVariable("endPoint") Integer endPoint,
+                                        @PathVariable("customerId") Integer customerId) {
+
+
 
         DeviceTokenRelation deviceTokenRelation = null;
-        deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        if (deviceTokenRelation == null) {
-            jsonObject.addProperty("deviceTokenRelation", "null");
-            return jsonObject.toString();
+        try {
+            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        List<CustomerLearn> customerLearns = infraredService.getCustomerLearns(deviceTokenRelation.getUuid(), customerId);
+        List<Learn> learns = infraredService.getCustomerLearns(deviceTokenRelation.getUuid(), customerId);
 
+        //封装成json字符串
+        JsonObject jsonObject = new JsonObject();
         Set<String> panels = new HashSet<String>();
 
-        for (int i = 0; i < customerLearns.size(); i++) {
-            panels.add(customerLearns.get(i).getPanelName());
+        for (int i = 0; i < learns.size(); i++) {
+            panels.add(learns.get(i).getPanelName());
         }
         for (String panel : panels) {
             JsonArray keys = new JsonArray();
-            for (int i = 0; i < customerLearns.size(); i++) {
-                if (customerLearns.get(i).getPanelName().equals(panel)) {
-                    keys.add(customerLearns.get(i).getName());
+            for (int i = 0; i < learns.size(); i++) {
+                if (learns.get(i).getPanelName().equals(panel)) {
+                    keys.add(learns.get(i).getName());
                 }
             }
             jsonObject.addProperty(panel, keys.toString());
         }
 
-        return jsonObject.toString();
+
+
+        return learns;
     }
 
-    @PostMapping("/names/{shortAddress}/{endPoint}/{customerId}/{panelId}")
+
+    @GetMapping("/names/{shortAddress}/{endPoint}/{customerId}/{panelId}")
     @ResponseBody
-    public String getKeynames(@PathVariable("shortAddress") String shortAddress,
+    public List<String> getKeynames(@PathVariable("shortAddress") String shortAddress,
                               @PathVariable("endPoint") Integer endPoint,
                               @PathVariable("customerId") Integer customerId,
                               @PathVariable("panelId") Integer panelId) {
 
-        JsonObject jsonObject = new JsonObject();
         DeviceTokenRelation deviceTokenRelation = null;
-        deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        if (deviceTokenRelation == null) {
-            jsonObject.addProperty("deviceTokenRelation", "null");
-            return jsonObject.toString();
+        try {
+            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
         List<String> keynames = infraredService.getKeyNames(deviceTokenRelation.getUuid(), customerId, panelId);
+
+        //封装成json串备用
+        JsonObject jsonObject = new JsonObject();
         JsonArray names = new JsonArray();
         for (String keyname : keynames) {
             names.add(keyname);
         }
         jsonObject.addProperty("keynames", names.toString());
 
-        return jsonObject.toString();
+        return keynames;
     }
 
+    @GetMapping("/devicde/learns/{shortAddress}/{endPoint}/{panelId}")
+    @ResponseBody
+    public List<String> getDeviceLearns(@PathVariable("shortAddress") String shortAddress,
+                                        @PathVariable("endPoint") Integer endPoint,
+                                        @PathVariable("panelId") Integer panelId) {
+        DeviceTokenRelation deviceTokenRelation = null;
+        try {
+            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<String> deviceLearns = infraredService.getDeviceLearns(deviceTokenRelation.getUuid(), panelId);
+
+        return deviceLearns;
+    }
+
+    @GetMapping("/devicde/allLearns/{shortAddress}/{endPoint}")
+    @ResponseBody
+    public List<Learn> getAllLearns(@PathVariable("shortAddress") String shortAddress,
+                                    @PathVariable("endPoint") Integer endPoint){
+        DeviceTokenRelation deviceTokenRelation = null;
+        try {
+            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<Learn> allLearns = infraredService.getAllLearns(deviceTokenRelation.getUuid());
+
+        return allLearns;
+    }
 }

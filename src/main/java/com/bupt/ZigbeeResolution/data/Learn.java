@@ -3,7 +3,7 @@ package com.bupt.ZigbeeResolution.data;
 import lombok.Data;
 
 /**
- * desciption:用户学习了的功能
+ * desciption:遥控面板：功能名
  */
 
 @Data
