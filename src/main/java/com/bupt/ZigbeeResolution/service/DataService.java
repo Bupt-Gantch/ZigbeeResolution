@@ -506,9 +506,11 @@ public class DataService {
                         JsonObject json = new JsonObject();
                         json.addProperty("shortAddress", shortAddress);
                         json.addProperty("endPoint", endPoint);
+                        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
                         switch (bytes[21]) {
                             case (byte) 0x81:  // 匹配
                                 json.addProperty("matchRes", (int) bytes[24]);
+                                json.addProperty("命令类型", "匹配");
                                 if ((int) bytes[24] == 0) {
                                     System.out.println("匹配成功");
                                 } else {
@@ -518,7 +520,8 @@ public class DataService {
                             case (byte) 0x82:  // 控制
                                 learnKey = (int) bytes[24] + bytes[25] << 8;
                                 json.addProperty("learnKey", learnKey);
-                                System.out.println("控制命令结果返回：learnKey="+learnKey);
+                                json.addProperty("命令类型", "控制");
+                                System.out.println("控制命令结果返回：learnKey=" + learnKey);
                                 break;
                             case (byte) 0x83:  // 学习
                                 int matchType = bytes[23];
@@ -527,25 +530,20 @@ public class DataService {
                                 json.addProperty("matchType", matchType);
                                 json.addProperty("learnKey", learnKey);
                                 json.addProperty("learnRes", bytes[26]);
+                                json.addProperty("命令类型", "学习");
 
-                                DeviceTokenRelation deviceTokenRelation1 = null;
-                                try {
-                                    deviceTokenRelation1 = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
                                 //保存红外宝学习码
                                 if (learnResult == 0) {  //
                                     System.out.println("学习成功");
-                                    infraredService.updateState(deviceTokenRelation1.getUuid(), learnKey); //修改学习码状态为成功
+                                    infraredService.updateState(deviceTokenRelation.getUuid(), learnKey); //修改学习码状态为成功
 //                                    infraredService.updateState("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey); //本地测试
                                 } else if (learnResult == 1) {
                                     System.out.println("学习失败");
-                                    infraredService.deleteKey(deviceTokenRelation1.getUuid(), learnKey); //删除失败的学习码
+                                    infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除失败的学习码
 //                                      infraredService.deleteKey("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey);//本地测试
                                 } else {
                                     System.out.println("存储器空间已满");
-                                    infraredService.deleteKey(deviceTokenRelation1.getUuid(), learnKey);
+                                    infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey);
                                 }
                                 break;
                             case (byte) 0x84:  // 查询当前设备参数
@@ -558,29 +556,35 @@ public class DataService {
                                 json.addProperty("AC", bytes[29] == 0xAA);
                                 json.addProperty("TV", bytes[30] == 0xAA);
                                 json.addProperty("STB", bytes[31] == 0xAA);
+                                json.addProperty("命令类型", "查询");
                                 break;
                             case (byte) 0x85:  // 删除该红外设备某个已学习的键
                                 matchType = bytes[23];
                                 learnKey = (int) bytes[24] + bytes[25] << 8;
                                 json.addProperty("matchType", matchType);
                                 json.addProperty("learnKey", learnKey);
-                                System.out.println("删除学习键："+learnKey);
+                                json.addProperty("命令类型", "删除键");
+                                infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除
+                                System.out.println("删除学习键：" + learnKey);
                                 break;
                             case (byte) 0x86:  // 删除该红外设备全部已学习数据
-                                //json.addProperty("deleteRes", 0);
+                                json.addProperty("命令类型", "删除全部");
+                                infraredService.deleteAllKey(deviceTokenRelation.getUuid());//删除全部
                                 System.out.println("删除该红外设备全部数据");
                                 break;
                             case (byte) 0x8A:
                                 //json.addProperty("exitRes", 0);
+                                json.addProperty("命令类型", "退出");
                                 System.out.println("退出匹配或学习状态");
                                 break;
                             default://0x80 读取版本号
                                 String version = byte2HexStr(Arrays.copyOfRange(bytes, 15, 21));
                                 System.out.println("IR version : " + version);
                                 json.addProperty("version", version);
+                                json.addProperty("命令类型", "读取版本号");
                                 break;
                         }
-                        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+
                         System.out.println("shortAddress : " + shortAddress + " ,endpoint : " + endPoint + " , deviceToken : " + deviceTokenRelation.getToken() + " , msg : " + json.toString());
                         DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), json.toString());
                         break;
