@@ -10,10 +10,10 @@ public interface InfraredMapper {
     @Select("SELECT `key` FROM infrared_model WHERE deviceId = #{deviceId} AND type = #{matchType} AND brand_cn = #{brand_cn} AND name = #{name}")
     Integer select_by_deviceid_type_brandCN_name(String deviceId, Integer matchType, String brand_cn, String name);
 
-    //添加了customerId、buttonId、panelId、state
-    @Insert("INSERT INTO infrared_model(deviceId, `key`, name, type, customerId, buttonId, panelId, status) VALUES(#{deviceId}, #{key}, #{name}, #{matchType}, #{customerId}, #{buttonId}, #{panelId}, #{status})")
+    //下发学习指令时插入的数据，添加了customerId、buttonId、panelId、state
+    @Insert("INSERT INTO infrared_model(deviceId, `key`, name, type, customerId, buttonId, panelId, status) VALUES(#{deviceId}, #{key}, #{name}, #{matchType}, #{customerId}, #{buttonId}, #{panelId}, #{state})")
     void insert(@Param("deviceId") String deviceId, @Param("key") Integer key, @Param("name") String name, @Param("matchType") Integer matchType,
-                @Param("customerId") Integer customerId, @Param("buttonId") Integer buttonId, @Param("panelId") Integer panelId, @Param("status") Integer status);
+                @Param("customerId") Integer customerId, @Param("buttonId") Integer buttonId, @Param("panelId") Integer panelId, @Param("state") Integer state);
 
     //空调设备功能键编号必须大于十进制 602
     @Select("SELECT MAX(`key`) FROM infrared_model WHERE `key` > 602 AND deviceId = #{deviceId} AND type = 1")
@@ -29,7 +29,7 @@ public interface InfraredMapper {
 
     //删除某个学习好的红外设备的数据
     @Delete("DELETE FROM infrared_model WHERE `key` = #{key} AND deviceId = #{deviceId}")
-    void delete_a_key(String deviceId, Integer key);
+    void delete_a_key(@Param("deviceId") String deviceId, @Param("key") Integer key);
 
     //删除红外设备的全部学习键
     @Delete("DELETE FROM infrared_model WHERE deviceId = #{deviceId}")

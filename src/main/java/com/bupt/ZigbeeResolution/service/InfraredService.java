@@ -18,8 +18,8 @@ public class InfraredService {
     }
 
     public void addKey(String deviceId, Integer key, String name, Integer matchType, Integer customerId, Integer buttonId,
-                       Integer panelId, Integer status) {
-        irMapper.insert(deviceId, key, name, matchType, customerId, buttonId, panelId, status);
+                       Integer panelId, Integer state) {
+        irMapper.insert(deviceId, key, name, matchType, customerId, buttonId, panelId, state);
     }
 
     public Integer get_maxkey_of_airCondition(String deviceId) {

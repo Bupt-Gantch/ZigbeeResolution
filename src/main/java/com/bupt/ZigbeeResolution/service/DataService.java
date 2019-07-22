@@ -502,6 +502,8 @@ public class DataService {
                     case "0000":  // infrared
                         int seq = (int) bytes[7]; //报告个数
                         int learnKey = -1;
+                        int low = 0;
+                        int high = 0;
                         String attribute = byte2HexStr(Arrays.copyOfRange(bytes, 8, 10)); // 0A 40
                         JsonObject json = new JsonObject();
                         json.addProperty("shortAddress", shortAddress);
@@ -518,14 +520,18 @@ public class DataService {
                                 }
                                 break;
                             case (byte) 0x82:  // 控制
-                                learnKey = (int) bytes[24] + bytes[25] << 8;
+                                 low = bytes[24];
+                                 high = bytes[25] << 8;
+                                learnKey = low + high;
                                 json.addProperty("learnKey", learnKey);
                                 json.addProperty("命令类型", "控制");
-                                System.out.println("控制命令结果返回：learnKey=" + learnKey);
+                                System.out.println("控制命令：learnKey=" + learnKey);
                                 break;
                             case (byte) 0x83:  // 学习
                                 int matchType = bytes[23];
-                                learnKey = (int) bytes[24] + bytes[25] << 8; //两字节16进制值转换为int
+                                low = bytes[24];
+                                high = bytes[25] << 8;
+                                learnKey = low + high;//两字节16进制值转换为int
                                 int learnResult = bytes[26];
                                 json.addProperty("matchType", matchType);
                                 json.addProperty("learnKey", learnKey);
@@ -560,28 +566,31 @@ public class DataService {
                                 break;
                             case (byte) 0x85:  // 删除该红外设备某个已学习的键
                                 matchType = bytes[23];
-                                learnKey = (int) bytes[24] + bytes[25] << 8;
+                                low = bytes[24];
+                                high = bytes[25] << 8;
+                                learnKey = low + high;
                                 json.addProperty("matchType", matchType);
                                 json.addProperty("learnKey", learnKey);
                                 json.addProperty("命令类型", "删除键");
                                 infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除
-                                System.out.println("删除学习键：" + learnKey);
+                                System.out.println("删除学习键 " + learnKey+" 成功");
                                 break;
                             case (byte) 0x86:  // 删除该红外设备全部已学习数据
                                 json.addProperty("命令类型", "删除全部");
                                 infraredService.deleteAllKey(deviceTokenRelation.getUuid());//删除全部
-                                System.out.println("删除该红外设备全部数据");
+                                System.out.println("删除该红外设备全部数据成功");
                                 break;
                             case (byte) 0x8A:
                                 //json.addProperty("exitRes", 0);
                                 json.addProperty("命令类型", "退出");
-                                System.out.println("退出匹配或学习状态");
+                                System.out.println("退出匹配或学习状态成功");
                                 break;
                             default://0x80 读取版本号
                                 String version = byte2HexStr(Arrays.copyOfRange(bytes, 15, 21));
                                 System.out.println("IR version : " + version);
                                 json.addProperty("version", version);
                                 json.addProperty("命令类型", "读取版本号");
+                                System.out.println("读取版本号成功");
                                 break;
                         }
 
