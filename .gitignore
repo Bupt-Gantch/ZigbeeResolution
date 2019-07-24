@@ -22,3 +22,6 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+
+### test  ###
+src/main/java/com/bupt/ZigbeeResolution/controller/TestController.java
