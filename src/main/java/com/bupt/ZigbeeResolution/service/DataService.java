@@ -499,7 +499,7 @@ public class DataService {
                 String clusterId = byte2HexStr(Arrays.copyOfRange(bytes, 5, 7));
                 System.out.println("shortAddress:" + shortAddress + "  endPoint:" + endPoint + "  clusterId:" + clusterId);
                 switch (clusterId) {
-                    case "0000":  // infrared
+                    case "0000":  // infrared 完善红外宝功能
                         int seq = (int) bytes[7]; //报告个数
                         int learnKey = -1;
                         int low = 0;
