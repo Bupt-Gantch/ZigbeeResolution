@@ -8,14 +8,18 @@ import lombok.Data;
 
 @Data
 public class Learn {
-    String panelName;
     String name;
+    Integer key;
+    Integer panelId;
+    Integer buttonId;
 
     @Override
     public String toString() {
         return "Learn{" +
-                "panelName='" + panelName + '\'' +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
+                ", key=" + key +
+                ", panelId=" + panelId +
+                ", buttonId=" + buttonId +
                 '}';
     }
 }

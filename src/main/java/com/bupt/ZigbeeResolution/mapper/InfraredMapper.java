@@ -4,6 +4,7 @@ import com.bupt.ZigbeeResolution.data.Learn;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface InfraredMapper {
@@ -31,7 +32,7 @@ public interface InfraredMapper {
     @Delete("DELETE FROM infrared_model WHERE `key` = #{key} AND deviceId = #{deviceId}")
     void delete_a_key(@Param("deviceId") String deviceId, @Param("key") Integer key);
 
-    //删除红外设备的全部学习键
+    //删除红外设备的全部学习数据
     @Delete("DELETE FROM infrared_model WHERE deviceId = #{deviceId}")
     void delete_all_key(String deviceId);
 
@@ -40,22 +41,50 @@ public interface InfraredMapper {
     void updateStateByResult(@Param("deviceId") String deviceId, @Param("key") Integer key);
 
     //获取该用户所学习的所有功能
-    @Select("select name,panelName from infrared_model,panel where deviceId = #{deviceId}" +
-            "and customerId = #{customerId} and state=1 and infrared_model.panelId=panel.panelId ")
-    List<Learn> selectCustomerLearn(@Param("deviceId") String deviceId, @Param("customerId") Integer customerId);
+    @Select("select `name`,`key`,`buttonId`,`panelId` from infrared_model where deviceId = #{deviceId}" +
+            "and customerId = #{customerId} and state=1 ")
+    List<Learn> selectCustomerAllLearns(@Param("deviceId") String deviceId, @Param("customerId") Integer customerId);
 
     //获取该用户某个遥控面板已学习的功能
-    @Select("select name from infrared_model where deviceId = #{deviceId} and customerId = #{customerId} " +
+    @Select("select `name`,`key`,`buttonId`,`panelId` from infrared_model where deviceId = #{deviceId} and customerId = #{customerId} " +
             "and panelId = #{panelId} and state=1  ")
-    List<String> selectKeyNames(@Param("deviceId") String deviceId, @Param("customerId") Integer customerId, @Param("panelId") Integer panelId);
+    List<Learn> selectCustomerPanelLearn(@Param("deviceId") String deviceId, @Param("customerId") Integer customerId, @Param("panelId") Integer panelId);
 
     //获取该红外设备某个遥控面板已学习的功能
-    @Select("select name from infrared_model where deviceId = #{deviceId} and panelId = #{panelId} and state=1  ")
-    List<String> selectDevicelearns(@Param("deviceId") String deviceId, @Param("panelId") Integer panelId);
+    @Select("select `name`,`key`,`buttonId`,`panelId` from infrared_model where deviceId = #{deviceId} and panelId = #{panelId} and state=1  ")
+    List<Learn> selectDevicePanelLearn(@Param("deviceId") String deviceId, @Param("panelId") Integer panelId);
 
     //获取该红外设备所学习的所有功能
-    @Select("select name,panelName from infrared_model,panel where deviceId = #{deviceId} and state=1 and infrared_model.panelId=panel.panelId ")
-    List<Learn> selectAllLearns(@Param("deviceId") String deviceId);
+    @Select("select `name`,`key`,`buttonId`,`panelId` from infrared_model where deviceId = #{deviceId} and state=1 ")
+    List<Learn> selectDeviceAllLearns(@Param("deviceId") String deviceId);
 
+    //查找某个按键的学习情况
+    @Select("SELECT `name`,`key`,`buttonId`,`panelId` FROM infrared_model WHERE deviceId = #{deviceId} AND panelId = #{panelId} AND buttonId = #{buttonId}")
+    Learn select_a_learn(@Param("deviceId") String deviceId, @Param("panelId") Integer panelId, @Param("buttonId") Integer buttonId);
+
+    //删除某个面板上所学的所有功能
+    @Delete("DELETE FROM infrared_model WHERE panelId = #{panelId} AND deviceId = #{deviceId}")
+    void delPanel(@Param("deviceId") String deviceId,@Param("panelId") Integer panelId);
+
+    //批量删除面板
+    @DeleteProvider(type = Provider.class,method = "batchDelete")
+    void delPanels(@Param("deviceId") String deviceId,@Param("panelIds") List<Integer> panelIds);
+
+    class Provider{
+        public String batchDelete(Map<String, Object> para){
+            List<Integer> panelIds = (List<Integer>)para.get("panelIds");
+            String deviceId =(String) para.get("deviceId");
+            StringBuilder sb = new StringBuilder();
+            sb.append("DELETE FROM infrared_model WHERE panelId IN (");
+            for (int i = 0; i < panelIds.size(); i++) {
+                sb.append("'").append(panelIds.get(i)).append("'");
+                if (i < panelIds.size() - 1)
+                    sb.append(",");
+            }
+            sb.append(") AND deviceId = ").append("'").append(deviceId).append("'");
+
+            return sb.toString();
+        }
+    }
 
 }

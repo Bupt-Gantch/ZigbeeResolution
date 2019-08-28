@@ -2,15 +2,15 @@ package com.bupt.ZigbeeResolution.service;
 
 import com.bupt.ZigbeeResolution.data.Learn;
 import com.bupt.ZigbeeResolution.mapper.InfraredMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @Service
 public class InfraredService {
 
-    @Autowired
+    @Resource
     InfraredMapper irMapper;
 
     public Integer findKey(String deviceId, Integer key) {
@@ -42,23 +42,36 @@ public class InfraredService {
         irMapper.updateStateByResult(deviceId, key);
     }
 
-    public List<Learn> getCustomerLearns(String deviceId, Integer customerId) {
-        List<Learn> learns = irMapper.selectCustomerLearn(deviceId, customerId);
+    public List<Learn> getCustomerAllLearns(String deviceId, Integer customerId) {
+        List<Learn> learns = irMapper.selectCustomerAllLearns(deviceId, customerId);
         return learns;
     }
 
-    public List<String> getKeyNames(String deviceId, Integer customerId, Integer panelId) {
-        List<String> keyNames = irMapper.selectKeyNames(deviceId, customerId, panelId);
+    public List<Learn> getCustomerPanelLearn(String deviceId, Integer customerId, Integer panelId) {
+        List<Learn> keyNames = irMapper.selectCustomerPanelLearn(deviceId, customerId, panelId);
         return keyNames;
     }
 
-    public List<String> getDeviceLearns(String deviceId, Integer panelId){
-        List<String> deviceLearns = irMapper.selectDevicelearns(deviceId,panelId);
+    public List<Learn> getDevicePanelLearn(String deviceId, Integer panelId){
+        List<Learn> deviceLearns = irMapper.selectDevicePanelLearn(deviceId,panelId);
         return  deviceLearns;
     }
 
-    public List<Learn> getAllLearns(String deviceId){
-        List<Learn> allLearns = irMapper.selectAllLearns(deviceId);
+    public List<Learn> getDeviceAllLearns(String deviceId){
+        List<Learn> allLearns = irMapper.selectDeviceAllLearns(deviceId);
         return allLearns;
+    }
+
+    public Learn get_a_learn(String deviceId, Integer panelId, Integer buttonId){
+        Learn learn = irMapper.select_a_learn(deviceId,panelId,buttonId);
+        return learn;
+    }
+
+    public void delPanel(String deviceId, Integer panelId){
+        irMapper.delPanel(deviceId,panelId);
+    }
+
+    public void delPanels(String deviceId,List<Integer> panelIds){
+        irMapper.delPanels(deviceId,panelIds);
     }
 }
