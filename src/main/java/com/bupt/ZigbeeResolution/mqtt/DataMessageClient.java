@@ -30,7 +30,7 @@ public class DataMessageClient {
         client.disconnect();
     }
 
-    public static synchronized  void publishAttribute(String token,String data)throws  Exception{
+    public static synchronized void publishAttribute(String token,String data) throws  Exception{
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
         options.setUserName(token);
@@ -41,6 +41,20 @@ public class DataMessageClient {
         msg.setRetained(false);
         msg.setQos(0);
         client.publish(Config.attributetopic, msg);
+        client.disconnect();
+    }
+
+    public static synchronized void publishResponse(String token, int requestId, String data) throws Exception {
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setCleanSession(true);
+        options.setUserName(token);
+        options.setConnectionTimeout(10);
+        client.connect(options);
+
+        MqttMessage msg = new MqttMessage(data.getBytes());
+        msg.setRetained(false);
+        msg.setQos(0);
+        client.publish(Config.RPC_RESPONSE_TOPIC + String.valueOf(requestId), msg);
         client.disconnect();
     }
 }

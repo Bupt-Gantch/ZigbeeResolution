@@ -1519,8 +1519,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
             Integer deviceNumber = deviceTokenRelationService.getDeviceNumber();
             DeviceTokenRelation gateway = deviceTokenRelationService.getGateway(gatewayName);
             //httpControl.httplogin();
-            if(!device.getSnid().equals("") && device.getSnid()!=null)
-            {
+            if(!device.getSnid().equals("") && device.getSnid()!=null) {
                 String id = httpControl.httpcreate(type+"_"+deviceNumber.toString(), gateway.getIEEE(),type, device.getSnid());
                 token = httpControl.httpfind(id);
 
@@ -1541,7 +1540,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                 gatewayMethod.getAllDevice(gatewayGroup.getIp());*/
             }
 
-            // if device type is infrare, get its version and then publish it
+            // if device type is infrared, get its version and then publish it
             if (type == "infrared" || type == "newInfrared") {
                 String ip = gatewayGroupService.getGatewayIp(device.getShortAddress(), Integer.parseInt(String.valueOf(device.getEndpoint())));
                 IR_get_version(device, ip);
@@ -1770,5 +1769,15 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                 DataMessageClient.publishData(deviceTokenRelation1.getToken(), jsonStr);
             }
         }
+    }
+
+    public void rpc_callback(DeviceTokenRelation deviceTokenRelation, int requestId, JsonObject data) throws Exception{
+
+        if (deviceTokenRelation == null ) {
+            return;
+        }
+
+        String jsonStr = data.toString();
+        DataMessageClient.publishResponse(deviceTokenRelation.getToken(), requestId, jsonStr);
     }
 }

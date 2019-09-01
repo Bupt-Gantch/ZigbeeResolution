@@ -223,4 +223,6 @@ public interface GatewayMethod {
   void setColorTemperature_CallBack();
 
   void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService,  GatewayGroupService gatewayGroupService) throws Exception;
+
+  void rpc_callback(DeviceTokenRelation deviceTokenRelation, int requestId, JsonObject data)throws Exception;
 }
