@@ -128,6 +128,12 @@ public class HttpControl {
         return null;
     }
 
+    /**
+     * 查找设备的 Get 请求
+     * @param id
+     * @return
+     * @throws Exception
+     */
     public String httpGetDevice(String id) throws Exception{
         Request requestCreate = new Request.Builder()
                 .url("http://47.105.120.203:30080/api/v1/deviceaccess/device/" + id)
@@ -145,6 +151,12 @@ public class HttpControl {
         return null;
     }
 
+    /**
+     * 更新设备的 Post 请求
+     * @param deviceInfo
+     * @return
+     * @throws IOException
+     */
     public String UpdateDevice(String deviceInfo) throws IOException {
 
         RequestBody bodyCreate = RequestBody.create(js, deviceInfo);

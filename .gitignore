@@ -25,3 +25,5 @@ nbdist/
 
 ### test  ###
 src/main/java/com/bupt/ZigbeeResolution/controller/TestController.java
+
+application.yml
