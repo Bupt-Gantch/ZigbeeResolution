@@ -39,7 +39,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     public final static String LoginMessage = "[Febit FCloud Server V2.0.0]\r\n[Normal Socket Mode]\r\nLogin:";
     private DataService dataService = new DataService();
     public static byte response = 0x00 ;
-    byte[] b = new byte[] { 4, 0, 31, 0 };
+    byte[] b = new byte[] { 4, 0, 31, 0 }; // HeartBeatMessage
     byte[] bt = new byte[1024];
 
     String ipsname = null;
@@ -64,6 +64,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         Channel channel = ctx.channel();
         bt = getSendContent(80, LoginMessage.getBytes());
         channel.write(bt);
+        System.out.println("网关 " + getIPString(ctx) + " 连接成功");
     }
 
     @Override
@@ -116,16 +117,14 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
-        System.out.println("orgin-msg:" + SocketServer.bytesToHexString(msg));
+        System.out.println("origin-msg received:" + SocketServer.bytesToHexString(msg));
         String name = null;
         String pwd = null;
         byte byteA3 = msg[2];
-//        byte byteA3 = 0x0b;
         Channel channel = ctx.channel();
         String ctxip = channel.toString();
         String ip = getRemoteAddress(ctx);
         for (Channel ch : group) {
-            //Integer position =ip.lastIndexOf(":");
             ips = ip.substring(1);
             String checkGatewayName = gatewayGroupService.getGatewayNameByIp(ips);
             if(checkGatewayName!=null){
@@ -136,18 +135,18 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                 }
             }
 
-
             if (ch == channel){
-                System.out.println(SocketServer.bytesToHexString(msg));
-                if (byteA3 == 30) {
-                    System.out.println(ctx.toString() + "：" + SocketServer.bytesToHexString(msg));
+//                System.out.println(SocketServer.bytesToHexString(msg));
+                if (byteA3 == 30) {   // HeartBeatMessage
+                    System.out.println(ctx.toString() + "心跳包" + SocketServer.bytesToHexString(msg));
                     ch.writeAndFlush(b);
                  /*   if(response!=0x00){
                         DataService.setStatetrue();
                         response = 0x00;
                     }*/
-                }else if(byteA3 == 81) {
-                    System.out.println(Arrays.toString(msg));
+                }else if(byteA3 == 81) { // LoginReply
+//                    System.out.println(Arrays.toString(msg));
+                    System.out.println(ctx.toString() + "登录认证" + SocketServer.bytesToHexString(msg));
                     String s = new String(msg);
                     if (s.length() == 16) {
                         name = s.substring(6, 11);
@@ -168,12 +167,13 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     pwd = item.get("pwd").getAsString();
                     */
                     GatewayGroup gatewayGroup = new GatewayGroup(name, ips, ctxip);
+                    System.out.println("网关 " + name + " 登录成功");
                     if(gatewayGroupService.getGatewayGroup(name)!=null){
                         gatewayGroupService.removeGatewayGroupByName(name);
                     }
                     gatewayGroupService.addGatewayGroup(gatewayGroup);
 
-                    //TODO 暂不可用
+                    // create device and its token, initialize rpc client
                     DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByGatewayNameAndEndPoint(name, 0);
                     if(deviceTokenRelation == null){
                         String token = null;
@@ -194,19 +194,20 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         //mqttMap.put(ips, rpcMqttClient.getMqttClient());
                     }
 
-
+                    // 向客户端发送 LoginReply
                     bt = getSendContent(10, LoginControlMessage.getBytes());
                     channelgroups.add(channel);
                     ch.writeAndFlush(bt);
 
+                    // 获取网关下所有设备
                     gatewayMethod.getAllDevice(ips);
 
                 }
-                else  if (byteA3 == 12) { // 0x0c
+                else  if (byteA3 == 12) { // 0x0c ControlMessage
+                    // TODO ControlMessage
                     System.out.println(ctx.toString() + "控制数据" + SocketServer.bytesToHexString(msg));
                     //chs.writeAndFlush(msg);
-                } else if (byteA3 == 11) { // 0x0b
-
+                } else if (byteA3 == 11) { // 0x0b UpdateMessage
                     System.out.println(ctx.toString() + "传感器数据" + SocketServer.bytesToHexString(msg));
                     byte[] body = new byte[msg.length-6];
                     System.arraycopy(msg, 6, body, 0, msg.length-6);
@@ -216,8 +217,9 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     }*/
                     String gatewayName = gatewayGroupService.getGatewayNameByIp(ips);
                     dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService, sceneRelationService);
-//                    dataService.resolution(msg, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService, sceneRelationService);
                     //chs.writeAndFlush(msg);
+                } else {
+                    System.out.println(ctx.toString() + "未知数据包类型" + SocketServer.bytesToHexString(msg));
                 }
             }
         }
