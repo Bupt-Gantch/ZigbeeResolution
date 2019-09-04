@@ -256,7 +256,7 @@ public class RpcMessageCallBack implements MqttCallback{
 				controlDevice.setEndpoint(endpoint);
 				String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
 				String version = "";
-				int matchType = 5;
+				int type = 5;
 
                 if (ip == null) {
                     System.out.println("Gateway offline");
@@ -271,21 +271,21 @@ public class RpcMessageCallBack implements MqttCallback{
 
 					case "match":  // 码组匹配
 						version = jsonObject.get("version").getAsString();
-						matchType = jsonObject.get("matchType").getAsInt();
+						type = jsonObject.get("type").getAsInt();
 
-						gatewayMethod.IR_match(controlDevice, ip, version, matchType);
+						gatewayMethod.IR_match(controlDevice, ip, version, type);
 						break;
 
                     case "learn":  // 码组学习
 						version = jsonObject.get("version").getAsString();            // 版本号
-						matchType = jsonObject.get("matchType").getAsInt();           // 设备类型
-                        String key_name = jsonObject.get("buttonName").getAsString(); // 按钮名称
+						type = jsonObject.get("type").getAsInt();           // 设备类型
+                        String key_name = jsonObject.get("keyName").getAsString(); // 按钮名称
                         // Integer customerId = jsonObject.get("customerId").getAsInt(); // 用户ID
                         Integer number = jsonObject.get("number").getAsInt();     // 按钮ID
                         Integer panelId = jsonObject.get("panelId").getAsInt();       // 面板ID
 						Integer key = null;
 
-//						gatewayMethod.IR_learn(controlDevice, ip, version, matchType, key);
+//						gatewayMethod.IR_learn(controlDevice, ip, version, type, key);
 						DeviceTokenRelation deviceTokenRelation = null;
 						try {
 							deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(controlDevice.getShortAddress(), (int) controlDevice.getEndpoint());
@@ -296,7 +296,7 @@ public class RpcMessageCallBack implements MqttCallback{
 						}
 //						deviceTokenRelation = new DeviceTokenRelation(2386,"6090DD01008D1500",1,"8TbjprjWobxomsd0uiOr","newInfrared","5200095","11E4","2d01f2e0-79fd-11e9-8fc2-67fbc94ac784");
                         if (null != deviceTokenRelation) {
-							if (matchType == 1) {
+							if (type == 1) {
 								key = irService.get_maxkey_of_airCondition(deviceTokenRelation.getUuid());
 								if(null == key){ // 若从未学习过按键, 空调设备从603开始
 									key = 603;
@@ -317,7 +317,7 @@ public class RpcMessageCallBack implements MqttCallback{
 							while (null != irService.findAKey(panelId, number, key)){
 								key += 1;
 							}
-							gatewayMethod.IR_learn(controlDevice, ip, version, matchType, key);
+							gatewayMethod.IR_learn(controlDevice, ip, version, type, key);
                             irService.addAKey(panelId, number, key, key_name);
 						} else {
 						    System.err.println("device not exists");
@@ -326,10 +326,10 @@ public class RpcMessageCallBack implements MqttCallback{
 
 					case "penetrate":
 						version = jsonObject.get("version").getAsString();
-						matchType = jsonObject.get("matchType").getAsInt();
+						type = jsonObject.get("type").getAsInt();
 						Integer control_key = jsonObject.get("key").getAsInt();
 
-						gatewayMethod.IR_penetrate(controlDevice, ip, version,0, matchType, control_key);
+						gatewayMethod.IR_penetrate(controlDevice, ip, version,0, type, control_key);
 						break;
 
 					case "currentKey":
@@ -340,10 +340,10 @@ public class RpcMessageCallBack implements MqttCallback{
 
 					case "deleteKey":
 						version = jsonObject.get("version").getAsString();
-						matchType = jsonObject.get("matchType").getAsInt();
+						type = jsonObject.get("type").getAsInt();
 						Integer deleteKey = jsonObject.get("key").getAsInt();
 
-						gatewayMethod.IR_delete_learnt_key(controlDevice, ip, version, matchType, deleteKey);
+						gatewayMethod.IR_delete_learnt_key(controlDevice, ip, version, type, deleteKey);
 						break;
 
 					case "deleteAllKey":
