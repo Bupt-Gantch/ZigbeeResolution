@@ -6,6 +6,7 @@ import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
 import com.bupt.ZigbeeResolution.mqtt.RpcMessageCallBack;
+import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,8 +43,8 @@ public class DataService {
 //    private DeviceTokenRelationService deviceTokenRelationService;
 
     public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, GatewayGroupService gatewayGroupService, SceneRelationService sceneRelationService) throws Exception {
-        System.out.println("进入");
-        System.out.println("返回码：" + byte2HexStr(bytes));
+//        System.out.println("进入");
+        System.out.println("R：" + SocketServer.bytesToHexString(bytes));
         byte Response = bytes[0];
         switch (Response) {
             case 0x01:
@@ -556,13 +557,12 @@ public class DataService {
                                 //保存红外宝学习码
                                 if (learnResult == 0) {  //
                                     System.out.println("学习成功");
-                                    infraredService.updateState(deviceTokenRelation.getUuid(), learnKey); //修改学习码状态为成功
+//                                    infraredService.updateState(deviceTokenRelation.getUuid(), learnKey); //修改学习码状态为成功
 //                                    infraredService.updateState("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey); //本地测试
                                     data.addProperty("learn", "0");
                                 } else if (learnResult == 1) {
                                     System.out.println("学习失败");
                                     infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除失败的学习码
-//                                      infraredService.deleteKey("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey);//本地测试
                                     data.addProperty("learn", "1");
                                 } else {
                                     System.out.println("存储器空间已满");
@@ -580,8 +580,14 @@ public class DataService {
                                 json.addProperty("AC", bytes[29] == 0xAA);
                                 json.addProperty("TV", bytes[30] == 0xAA);
                                 json.addProperty("STB", bytes[31] == 0xAA);
+                                data.addProperty("AC_key", AC_key);
+                                data.addProperty("TV_key", TV_key);
+                                data.addProperty("STB_key", STB_key);
+                                data.addProperty("AC", bytes[29] == 0xAA);
+                                data.addProperty("TV", bytes[30] == 0xAA);
+                                data.addProperty("STB", bytes[31] == 0xAA);
 //                                json.addProperty("命令类型", "查询");
-                                System.out.println("红外宝查询当前设备参数 ==>" + json.toString());
+//                                System.out.println("红外宝查询当前设备参数 ==>" + json.toString());
                                 break;
                             case (byte) 0x85:  // 删除该红外设备某个已学习的键
                                 matchType = bytes[23];
@@ -609,11 +615,15 @@ public class DataService {
                                 break;
                         }
 
-                        System.out.println("Publish data of " + deviceTokenRelation.getToken() + " , msg : " + json.toString());
+                        //System.out.println("Publish data of " + deviceTokenRelation.getToken() + " , msg : " + json.toString());
                         // 发送数据到平台
-                        DataMessageClient.publishData(deviceTokenRelation.getToken(), json.toString());
-                        // rpc 调用返回
-                        gatewayMethod.rpc_callback(deviceTokenRelation, requestId, data);
+                        try {
+                            DataMessageClient.publishData(deviceTokenRelation.getToken(), json.toString());
+                            // rpc 调用返回
+                            gatewayMethod.rpc_callback(deviceTokenRelation, requestId, data);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         break;
 
                     case "0204":  // 温度传感器上报数据

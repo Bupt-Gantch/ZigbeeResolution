@@ -1,10 +1,17 @@
 package com.bupt.ZigbeeResolution.service;
 
+import com.bupt.ZigbeeResolution.data.Key;
 import com.bupt.ZigbeeResolution.data.Learn;
+import com.bupt.ZigbeeResolution.data.Panel;
 import com.bupt.ZigbeeResolution.mapper.InfraredMapper;
+import com.google.gson.JsonObject;
+import javafx.util.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -23,16 +30,20 @@ public class InfraredService {
     }
 
     public Integer get_maxkey_of_airCondition(String deviceId) {
-        return irMapper.select_maxnum_of_airCondition(deviceId);
+        return irMapper.elect_maxkey_of_airCondition(deviceId);
     }
 
     public Integer get_maxkey_of_non_airConditon(String deviceId) {
-        return irMapper.select_maxnum_of_non_airCondition(deviceId);
+        return irMapper.select_maxkey_of_non_airCondition(deviceId);
     }
 
-    public void deleteKey(String deviceId, Integer key) {
-        irMapper.delete_a_key(deviceId, key);
+    public Integer get_maxkey(String deviceId){
+        return irMapper.select_maxkey(deviceId);
     }
+
+//    public void deleteKey(String deviceId, Integer key) {
+//        irMapper.delete_a_key(deviceId, key);
+//    }
 
     public void deleteAllKey(String deviceId) {
         irMapper.delete_all_key(deviceId);
@@ -74,4 +85,221 @@ public class InfraredService {
     public void delPanels(String deviceId,List<Integer> panelIds){
         irMapper.delPanels(deviceId,panelIds);
     }
+
+    // =================================================================================
+
+    public Panel findPanel(Integer id){
+        if (id < 0 ) {
+            return null;
+        }
+        Panel p = irMapper.select_panel_by_id(id);
+        return p;
+    }
+
+    public List<Panel> findPanels(String deviceId, Integer sort) {
+        if ("".equals(deviceId)) {
+            return null;
+        }
+
+        return irMapper.select_panels_by_deviceId(deviceId, sort);
+
+    }
+
+    public int deletePanel(Integer panelId){
+        if (findPanel(panelId) == null) {
+            return 0;
+        }
+        return irMapper.delete_panel_by_id(panelId);
+    }
+
+    public int deletePanel(String deviceId, Integer id) {
+        if ("".equals(deviceId)) {
+            return 0;
+        }
+
+        if (irMapper.delete_panel_relation(deviceId, id) != 0){
+            List<Key> ks = irMapper.select_keys_by_panelId(id);
+            if (deletePanel(id) != 0){
+                if (ks != null){
+                    int delete = 0;
+                    for (Key k : ks){
+                        if (k.getId() != null) {
+                            deleteKey(id, k.getId());
+                            delete ++;
+                        }
+                    }
+                    return delete;
+                }
+            }
+        }
+        return 0;
+
+    }
+
+    public int deletePanels(String deviceId){
+        if ("".equals(deviceId)) {
+            return 0;
+        }
+        List<Panel> ps = irMapper.select_panels_by_deviceId(deviceId, 0);
+        if (null == ps) {
+            return 0;
+        }
+        int delete = 0;
+        for (Panel p: ps) {
+            try {
+                deletePanel(deviceId, p.getId());
+                delete += 1;
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return delete;
+    }
+
+    public int addPanel(String deviceId, JsonObject data) {
+        if("".equals(deviceId)) {
+            return 0;
+        }
+
+        String name = data.get("name").getAsString();
+        Integer type = data.get("type").getAsInt();
+        Timestamp time = new Timestamp(new Date().getTime());
+
+        Panel p = new Panel();
+        p.setName(name);
+        p.setTimestamp(time);
+        p.setType(type);
+
+        if (0== irMapper.insert_panel(p)){
+            return 0;
+        }
+        return irMapper.insert_panel_relation(deviceId, p.getId());
+
+    }
+
+    public int updatePanel(Integer panelId, JsonObject data) {
+        if(panelId == null) {
+            return 0;
+        }
+
+        Panel oldp = irMapper.select_panel_by_id(panelId);
+        if (null == oldp){
+            return 0;
+        }
+
+        String name = data.get("name").getAsString();
+        Integer type = data.get("type").getAsInt();
+        Timestamp time = new Timestamp(new Date().getTime());
+
+        Panel p = new Panel();
+        p.setId(panelId);
+        p.setName(name);
+        p.setTimestamp(time);
+        p.setType(type);
+
+        return irMapper.update_panel(p);
+
+    }
+
+    public Key findAKey(Integer keyId) {
+        return irMapper.select_key_by_id(keyId);
+    }
+
+    public Key findAKey(Integer panelId, Integer number, Integer key){
+        return irMapper.select_key_by_number_key(number, key);
+    }
+
+    public List<Key> findKeys(Integer id){
+        if (id < 0 || null == findPanel(id)) {
+            return null;
+        }
+        return irMapper.select_keys_by_panelId(id);
+    }
+
+    public int addAKey(Integer panelId, Integer number, Integer key, String name){
+        if (findPanel(panelId) == null) {
+            return 0;
+        }
+        Key k = new Key();
+        k.setKey(key);
+        k.setName(name);
+        k.setNumber(number);
+
+        try{
+            irMapper.insert_key(k);
+            if(k.getId() == null){
+                return 0;
+            }
+            return irMapper.insert_panel_key_relation(panelId, k.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int deletePanelKeyRelation(Integer panelId, Integer keyId){
+        return irMapper.delete_panel_key_relation(panelId, keyId);
+    }
+
+    public int deleteKey(Integer keyId){
+        return irMapper.delete_key_by_id(keyId);
+    }
+
+    public int deleteKey(Integer panelId, Integer keyId){
+        int delete = 0;
+        delete = deletePanelKeyRelation(panelId,keyId);
+        delete = deleteKey(keyId);
+        return delete;
+
+    }
+
+    public int deleteKey(String deviceId, Integer key){
+        Pair<Integer, Integer> relation = null;
+        relation = irMapper.select_key_by_deviceId_key(deviceId, key);
+        if (relation == null) {
+            return 0;
+        }
+        if (null == findPanel(relation.getKey()) || null == findAKey(relation.getValue())){
+            return 0;
+        }
+        return deleteKey(relation.getKey(),relation.getValue());
+
+    }
+
+    public int deleteKeys(Integer id) {
+        if (null == findPanel(id)) {
+            return 0;
+        }
+
+        int delete = 0;
+        List<Key> ks = irMapper.select_keys_by_panelId(id);
+        for (Key k : ks) {
+            try {
+                deleteKey(id, k.getId());
+                delete += 1;
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return delete;
+    }
+
+    public int updateKey(Integer id, JsonObject data){
+        if (findAKey(id) == null) {
+            return 0;
+        }
+        Integer number = data.get("number").getAsInt();
+        Integer key = data.get("key").getAsInt();
+        String name = data.get("name").getAsString();
+
+        Key k = new Key();
+        k.setId(id);
+        k.setNumber(number);
+        k.setName(name);
+        k.setKey(key);
+
+        return irMapper.update_key(k);
+
+    }
+
 }

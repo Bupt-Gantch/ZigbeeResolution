@@ -1,6 +1,9 @@
 package com.bupt.ZigbeeResolution.mapper;
 
+import com.bupt.ZigbeeResolution.data.Key;
 import com.bupt.ZigbeeResolution.data.Learn;
+import com.bupt.ZigbeeResolution.data.Panel;
+import javafx.util.Pair;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -17,12 +20,25 @@ public interface InfraredMapper {
                 @Param("customerId") Integer customerId, @Param("buttonId") Integer buttonId, @Param("panelId") Integer panelId, @Param("state") Integer state);
 
     //空调设备功能键编号必须大于十进制 602
-    @Select("SELECT MAX(`key`) FROM infrared_model WHERE `key` > 602 AND deviceId = #{deviceId} AND type = 1")
-    Integer select_maxnum_of_airCondition(String deviceId);
+    @Select("SELECT\tMAX( `key` ) FROM\t(\tSELECT T2.key_id  FROM infrared_panel_relation AS T0 INNER JOIN infrared_panel AS T1 ON\tT0.panel_id=T1.id INNER JOIN infrared_panel_key_relation AS T2 ON T1.id = T2.panel_id \n" +
+            "\t\tAND T1.type=1 AND T0.device_id=#{deviceId}\n" +
+            "\t) AS T3\n" +
+            "\tINNER JOIN infrared_key AS T4 ON T3.key_id = T4.id;")
+    Integer elect_maxkey_of_airCondition(@Param("deviceId") String deviceId);
 
     //非空调设备功能键编号必须大于十进制 43
-    @Select("SELECT MAX(`key`) FROM infrared_model WHERE deviceId = #{deviceId} AND `key` > 43 AND type != 1")
-    Integer select_maxnum_of_non_airCondition(String deviceId);
+    @Select("SELECT\tMAX( `key` ) FROM\t(\tSELECT T2.key_id  FROM infrared_panel_relation AS T0 INNER JOIN infrared_panel AS T1 ON\tT0.panel_id=T1.id INNER JOIN infrared_panel_key_relation AS T2 ON T1.id = T2.panel_id \n" +
+            "\t\tAND T1.type!=1 AND T0.device_id=#{deviceId}\n" +
+            "\t) AS T3\n" +
+            "\tINNER JOIN infrared_key AS T4 ON T3.key_id = T4.id;")
+    Integer select_maxkey_of_non_airCondition(String deviceId);
+
+    //非空调设备功能键编号必须大于十进制 43
+    @Select("SELECT\tMAX( `key` ) FROM\t(\tSELECT T2.key_id  FROM infrared_panel_relation AS T0 INNER JOIN infrared_panel AS T1 ON\tT0.panel_id=T1.id INNER JOIN infrared_panel_key_relation AS T2 ON T1.id = T2.panel_id \n" +
+            "AND T0.device_id=#{deviceId}\n" +
+            "\t) AS T3\n" +
+            "\tINNER JOIN infrared_key AS T4 ON T3.key_id = T4.id;")
+    Integer select_maxkey(String deviceId);
 
 
     @Select("SELECT `key` FROM infrared_model WHERE `key` = #{key} AND deviceId = #{deviceId}")
@@ -85,6 +101,76 @@ public interface InfraredMapper {
 
             return sb.toString();
         }
+
+        public String SortedSelect(Map<String, Object> para) {
+            Integer sort = (Integer)para.get("sort");
+            String sql = "SELECT T2.id, T2.`name`, T2.`timestamp`, T2.type FROM infrared_panel_relation AS T1 INNER JOIN infrared_panel AS T2 WHERE T1.device_id = #{deviceId}";
+            if (sort == null)
+                return sql;
+            switch (sort) {
+                case 1: // byName
+                    sql += "ORDER BY T2.`name` ASC";
+                    break;
+                case 2: //byType
+                    sql += "ORDER BY T2.type ASC";
+                    break;
+                case 3:
+                    sql += "ORDER BY T2.`timestamp` DESC";
+                    break;
+                default:
+                    break;
+            }
+            return sql;
+        }
     }
 
+    @Select("SELECT * FROM infrared_panel WHERE id=#{id}")
+    Panel select_panel_by_id(@Param("id")Integer id);
+
+    @SelectProvider(type = Provider.class,method = "SortedSelect")
+    List<Panel> select_panels_by_deviceId(@Param("deviceId")String deviceId, @Param("sort")Integer sort);
+
+    @Delete("DELETE FROM infrared_panel_relation WHERE device_id = #{deviceId} AND panel_id = #{panelId}")
+    int delete_panel_relation(@Param("deviceId")String deviceId, @Param("panelId")Integer panelId);
+
+    @Delete("DELETE FROM infrared_panel WHERE id = #{panelId}")
+    int delete_panel_by_id(@Param("panelId")Integer panelId);
+
+    @Insert("INSERT INTO infrared_panel(`name`,type,timestamp) VALUES(#{name}, #{type}, current_timestamp)")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    int insert_panel(Panel p);
+
+    @Insert("INSERT INTO infrared_panel_relation(device_id, panel_id) VALUES(#{deviceId}, #{panelId})")
+    int insert_panel_relation(@Param("deviceId")String deviceId, @Param("panelId")Integer panelId);
+
+    @Update("UPDATE infrared_panel SET name = #{name}, type = #{type} WHERE id = #{id}")
+    int update_panel(Panel p);
+
+    @Select("SELECT * FROM infrared_key WHERE id=#{keyId}")
+    Key select_key_by_id(@Param("keyId")Integer  keyId);
+
+    @Select("SELECT DISTINCT T6.panel_id, T6.id FROM ( SELECT T2.panel_id FROM infrared_panel_relation AS T1 INNER JOIN infrared_panel_key_relation AS T2 ON T1.panel_id = T2.panel_id AND T1.device_id = #{deviceId} ) AS T5 INNER JOIN ( SELECT T3.panel_id,T4.id FROM infrared_panel_key_relation AS T3 INNER JOIN infrared_key AS T4 ON T3.key_id = T4.id AND T4.`key` = #{key} ) AS T6 ON T5.panel_id = T6.panel_id")
+    Pair<Integer, Integer> select_key_by_deviceId_key(@Param("deviceId")String deviceId, @Param("key")Integer key);
+
+    @Select("SELECT * FROM infrared_key WHERE number=#{number} AND key=#{key}")
+    Key select_key_by_number_key(@Param("number")Integer number, @Param("key")Integer key);
+
+    @Select("SELECT T2.id, T2.`name`, T2.number, T2.`key` FROM infrared_panel_key_relation AS T1 INNER JOIN infrared_key AS T2 ON T1.key_id=T2.id WHERE T1.panel_id = #{id}")
+    List<Key> select_keys_by_panelId(@Param("id") Integer id);
+
+    @Insert("INSERT INTO infrared_key(`name`, number, `key`) VALUES(#{name},#{number},#{key})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    int insert_key(Key k);
+
+    @Insert("INSERT INTO infrared_panel_key_relation VALUES(#{panelId}, #{keyId})")
+    int insert_panel_key_relation(@Param("panelId") Integer panelId, @Param("keyId") Integer keyId);
+
+    @Delete("DELETE FROM infrared_key WHERE id = #{keyId}")
+    int delete_key_by_id(@Param("keyId")Integer keyId);
+
+    @Delete("DELETE FROM infrared_panel_key_relation WHERE panel_id=#{panelId} AND key_id=#{keyId}")
+    int delete_panel_key_relation(@Param("panelId")Integer panelId, @Param("keyId")Integer keyId);
+
+    @Update("UPDATE infrared_key SET name=#{name}, number=#{number} WHERE id=#{id}")
+    int update_key(Key k);
 }
