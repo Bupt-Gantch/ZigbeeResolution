@@ -177,10 +177,10 @@ public class InfraredController {
 
     //============================================================================
 
-    @GetMapping("/panel/get")
+    @GetMapping("/panel/get/{panelId}")
     public String getPanel(@RequestParam String shortAddress,
                            @RequestParam Integer endpoint,
-                           @RequestParam Integer id) throws Exception{
+                           @PathVariable("panelId") Integer id) throws Exception{
 
         JsonObject res = new JsonObject();
 
@@ -196,7 +196,8 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", p.toString());
+        res.addProperty("msg","success");
+        res.addProperty("data", p.toString());
         return res.toString();
     }
 
@@ -219,7 +220,8 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", ps.toString());
+        res.addProperty("msg","success");
+        res.addProperty("data", ps.toString());
         return res.toString();
     }
 
@@ -243,12 +245,13 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", 0);
+        res.addProperty("msg","success");
+        res.addProperty("data", 0);
         return res.toString();
     }
 
-    @DeleteMapping("/panel/del")
-    public String deletePanel(@RequestParam Integer panelId,
+    @DeleteMapping("/panel/del/{panelId}")
+    public String deletePanel(@PathVariable("panelId") Integer panelId,
                               @RequestBody String data) throws Exception {
         JsonObject res = new JsonObject();
 
@@ -268,14 +271,18 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", 0);
+        res.addProperty("msg","success");
+        res.addProperty("data", 0);
         return res.toString();
     }
 
     @DeleteMapping("/panels/del")
-    public String deletePanels(@RequestParam String shortAddress,
-                              @RequestParam Integer endpoint) throws Exception {
+    public String deletePanels(@RequestBody String data) throws Exception {
         JsonObject res = new JsonObject();
+
+        JsonObject enty = (JsonObject) new JsonParser().parse(data);
+        String shortAddress = enty.get("shortAddress").getAsString();
+        Integer endpoint = enty.get("endpoint").getAsInt();
 
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endpoint);
         if (deviceTokenRelation == null) {
@@ -289,12 +296,13 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", 0);
+        res.addProperty("msg","success");
+        res.addProperty("data", 0);
         return res.toString();
     }
 
-    @PostMapping("/panel/upd")
-    public String updatePanel(@RequestParam Integer panelId,
+    @PostMapping("/panel/upd/{panelId}")
+    public String updatePanel(@PathVariable("panelId") Integer panelId,
                               @RequestBody String data)throws Exception{
 
         JsonObject res = new JsonObject();
@@ -305,12 +313,13 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", 0);
+        res.addProperty("msg","success");
+        res.addProperty("data", 0);
         return res.toString();
     }
 
-    @GetMapping("/key/get")
-    public String getKey(@RequestParam Integer keyId) throws Exception {
+    @GetMapping("/key/get/{keyId}")
+    public String getKey(@PathVariable("keyId") Integer keyId) throws Exception {
 
         JsonObject res = new JsonObject();
 
@@ -324,8 +333,8 @@ public class InfraredController {
         return res.toString();
     }
 
-    @GetMapping("/keys/get")
-    public String getKeys(@RequestParam Integer id) throws Exception {
+    @GetMapping("/keys/get/{panelId}")
+    public String getKeys(@PathVariable("panelId") Integer id) throws Exception {
         JsonObject res = new JsonObject();
 
         List<Key> ks= infraredService.findKeys(id);
@@ -334,12 +343,13 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", ks.toString());
+        res.addProperty("msg","success");
+        res.addProperty("data", ks.toString());
         return res.toString();
     }
 
-    @PostMapping("key/add")
-    public String createKey(@RequestParam Integer panelId,
+    @PostMapping("key/add/{panelId}")
+    public String createKey(@PathVariable("panelId") Integer panelId,
                             @RequestBody String data)throws Exception{
         JsonObject res = new JsonObject();
 
@@ -359,13 +369,14 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", 0);
+        res.addProperty("msg","success");
+        res.addProperty("data", 0);
         return res.toString();
     }
 
-    @DeleteMapping("/key/del")
-    public String deleteKey(@RequestParam Integer panelId,
-                            @RequestParam Integer keyId)throws Exception{
+    @DeleteMapping("/key/del/{panelId/{keyId}")
+    public String deleteKey(@PathVariable("panelId") Integer panelId,
+                            @PathVariable("keyId") Integer keyId)throws Exception{
 
         JsonObject res = new JsonObject();
 
@@ -385,12 +396,13 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", 0);
+        res.addProperty("msg","success");
+        res.addProperty("data", 0);
         return res.toString();
     }
 
-    @DeleteMapping("/keys/del")
-    public String deleteKeys(@RequestParam Integer panelId) throws Exception{
+    @DeleteMapping("/keys/del/{panelId}")
+    public String deleteKeys(@PathVariable("panelId") Integer panelId) throws Exception{
         JsonObject res = new JsonObject();
 
         if (null == infraredService.findPanel(panelId)) {
@@ -404,12 +416,13 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", 0);
+        res.addProperty("msg","success");
+        res.addProperty("data", 0);
         return res.toString();
     }
 
-    @PostMapping("/key/upd")
-    public String updateKey(@RequestParam Integer keyId,
+    @PostMapping("/key/upd/{keyId}")
+    public String updateKey(@PathVariable("keyId") Integer keyId,
                             @RequestBody String data) throws Exception{
         JsonObject res = new JsonObject();
 
@@ -424,7 +437,8 @@ public class InfraredController {
             return res.toString();
         }
 
-        res.addProperty("msg", 0);
+        res.addProperty("msg","success");
+        res.addProperty("data", 0);
         return res.toString();
     }
 }
