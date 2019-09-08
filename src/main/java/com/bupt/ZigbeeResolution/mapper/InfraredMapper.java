@@ -104,7 +104,7 @@ public interface InfraredMapper {
 
         public String SortedSelect(Map<String, Object> para) {
             Integer sort = (Integer)para.get("sort");
-            String sql = "SELECT T2.id, T2.`name`, T2.`timestamp`, T2.type FROM infrared_panel_relation AS T1 INNER JOIN infrared_panel AS T2 WHERE T1.device_id = #{deviceId}";
+            String sql = "SELECT T2.id, T2.`name`, T2.`timestamp`, T2.type FROM infrared_panel_relation AS T1 INNER JOIN infrared_panel AS T2 ON T1.panel_id=T2.id WHERE T1.device_id = #{deviceId}";
             if (sort == null)
                 return sql;
             switch (sort) {
@@ -143,7 +143,7 @@ public interface InfraredMapper {
     @Insert("INSERT INTO infrared_panel_relation(device_id, panel_id) VALUES(#{deviceId}, #{panelId})")
     int insert_panel_relation(@Param("deviceId")String deviceId, @Param("panelId")Integer panelId);
 
-    @Update("UPDATE infrared_panel SET name = #{name}, type = #{type} WHERE id = #{id}")
+    @Update("UPDATE infrared_panel SET `name` = #{name}, type = #{type} WHERE id = #{id}")
     int update_panel(Panel p);
 
     @Select("SELECT * FROM infrared_key WHERE id=#{keyId}")
@@ -152,7 +152,7 @@ public interface InfraredMapper {
     @Select("SELECT DISTINCT T6.panel_id, T6.id FROM ( SELECT T2.panel_id FROM infrared_panel_relation AS T1 INNER JOIN infrared_panel_key_relation AS T2 ON T1.panel_id = T2.panel_id AND T1.device_id = #{deviceId} ) AS T5 INNER JOIN ( SELECT T3.panel_id,T4.id FROM infrared_panel_key_relation AS T3 INNER JOIN infrared_key AS T4 ON T3.key_id = T4.id AND T4.`key` = #{key} ) AS T6 ON T5.panel_id = T6.panel_id")
     Pair<Integer, Integer> select_key_by_deviceId_key(@Param("deviceId")String deviceId, @Param("key")Integer key);
 
-    @Select("SELECT * FROM infrared_key WHERE number=#{number} AND key=#{key}")
+    @Select("SELECT * FROM infrared_key WHERE number=#{number} AND `key`=#{key}")
     Key select_key_by_number_key(@Param("number")Integer number, @Param("key")Integer key);
 
     @Select("SELECT T2.id, T2.`name`, T2.number, T2.`key` FROM infrared_panel_key_relation AS T1 INNER JOIN infrared_key AS T2 ON T1.key_id=T2.id WHERE T1.panel_id = #{id}")
@@ -171,6 +171,6 @@ public interface InfraredMapper {
     @Delete("DELETE FROM infrared_panel_key_relation WHERE panel_id=#{panelId} AND key_id=#{keyId}")
     int delete_panel_key_relation(@Param("panelId")Integer panelId, @Param("keyId")Integer keyId);
 
-    @Update("UPDATE infrared_key SET name=#{name}, number=#{number} WHERE id=#{id}")
+    @Update("UPDATE infrared_key SET `name`=#{name}, number=#{number} WHERE id=#{id}")
     int update_key(Key k);
 }

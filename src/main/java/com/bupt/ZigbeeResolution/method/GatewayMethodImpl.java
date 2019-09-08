@@ -336,6 +336,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     public void IR_get_version(Device device, String ip) {
+        System.out.println("+++++++++++++++++ 获取版本号 ++++++++++++++++++");
         byte[] bytes = new byte[21];
 
         int index = 0;
@@ -362,10 +363,12 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = (byte) 0x82;
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
+        System.out.println("下发指令");
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void IR_match(Device device, String ip, String version, int matchType) {
+        System.out.println("+++++++++++++++++ 红外匹配 ++++++++++++++++++");
         byte[] bytes = new byte[28];
 
         int index = 0;
@@ -401,10 +404,12 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
+        System.out.println("下发指令");
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void IR_learn(Device device, String ip, String version, int matchType, int key){
+        System.out.println("+++++++++++++++++ 红外学习 ++++++++++++++++++");
         byte[] bytes = new byte[30];
 
         int index = 0;
@@ -440,13 +445,14 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         System.arraycopy(bytes, index-12, countValue, 0, 12);
         bytes[index] = DataService.count_bytes(countValue);
 
+        System.out.println("下发指令");
         sendMessage = TransportHandler.getSendContent(12, bytes);
         Channel channel = SocketServer.getMap().get(ip);
-        System.out.println("IR_LEARN : "+channel.remoteAddress());
         channel.writeAndFlush(sendMessage);
     }
 
     public void IR_penetrate(Device device, String ip, String version, int seq, int matchType, int key){
+        System.out.println("+++++++++++++++++ 红外透传 ++++++++++++++++++");
         byte[] bytes = new byte[30];
 
         int index = 0;
@@ -482,6 +488,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         System.arraycopy(bytes, index-12, countValue, 0, 12);
         bytes[index] = DataService.count_bytes(countValue);
 
+        System.out.println("下发指令");
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
@@ -1534,7 +1541,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                 }
                 DataMessageClient.publishData(token,jsonObject.toString());
             }else{
-/*                GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayName);
+/*              GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayName);
 
                 GatewayMethod gatewayMethod = new GatewayMethodImpl();
                 gatewayMethod.getAllDevice(gatewayGroup.getIp());*/
@@ -1741,6 +1748,16 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         System.out.println("set device color and Temperature succeed!");
     }
 
+    public void getInfraredVersionCallBack(String token, String version ){
+        JsonObject data = new JsonObject();
+        data.addProperty("version", version);
+        try {
+            DataMessageClient.publishAttribute(token, data.toString());
+        }catch (Exception e){
+            System.err.println(e.getCause());
+        }
+    }
+
     @Override
     public void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService, GatewayGroupService gatewayGroupService) throws Exception {
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
@@ -1757,9 +1774,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
             }
             return;
 
-
         }catch (NullPointerException e){
-
+            //System.err.println(e.getMessage());
         }
 
         if(deviceTokenRelation!=null) {
@@ -1777,7 +1793,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
             return;
         }
 
-        String jsonStr = data.toString();
-        DataMessageClient.publishResponse(deviceTokenRelation.getToken(), requestId, jsonStr);
+        DataMessageClient.publishResponse(deviceTokenRelation.getToken(), requestId, data.toString());
     }
 }

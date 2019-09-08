@@ -177,14 +177,13 @@ public class InfraredController {
 
     //============================================================================
 
-    @GetMapping("/panel/get/{panelId}")
-    public String getPanel(@RequestParam String shortAddress,
-                           @RequestParam Integer endpoint,
+    @GetMapping("/panel/get/{deviceId}/{panelId}")
+    public String getPanel(@PathVariable("deviceId")String deviceId,
                            @PathVariable("panelId") Integer id) throws Exception{
 
         JsonObject res = new JsonObject();
 
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endpoint);
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
         if (deviceTokenRelation == null) {
             res.addProperty("msg", "device not exist!");
             return res.toString();
@@ -201,14 +200,13 @@ public class InfraredController {
         return res.toString();
     }
 
-    @GetMapping("/panels/get")
-    public String getPanels(@RequestParam String shortAddress,
-                            @RequestParam Integer endpoint,
+    @GetMapping("/panels/get/{deviceId}")
+    public String getPanels(@PathVariable("deviceId") String deviceId,
                             @RequestParam(value = "sort", required = false) Integer sort) throws Exception{
 
         JsonObject res = new JsonObject();
 
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endpoint);
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
         if (deviceTokenRelation == null) {
             res.addProperty("msg", "device not exist!");
             return res.toString();
@@ -225,15 +223,12 @@ public class InfraredController {
         return res.toString();
     }
 
-    @PostMapping("/panel/add")
-    public String createPanel(@RequestBody String data) throws Exception {
+    @PostMapping("/panel/add/{deviceId}")
+    public String createPanel(@PathVariable("deviceId")String deviceId,
+                              @RequestBody String data) throws Exception {
         JsonObject res = new JsonObject();
 
-        JsonObject enty = (JsonObject) new JsonParser().parse(data);
-        String shortAddress = enty.get("shortAddress").getAsString();
-        Integer endpoint = enty.get("endpoint").getAsInt();
-
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endpoint);
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
         if (deviceTokenRelation == null) {
             res.addProperty("msg", "device not exist");
             return res.toString();
@@ -246,20 +241,16 @@ public class InfraredController {
         }
 
         res.addProperty("msg","success");
-        res.addProperty("data", 0);
+        res.addProperty("data", insert);
         return res.toString();
     }
 
-    @DeleteMapping("/panel/del/{panelId}")
-    public String deletePanel(@PathVariable("panelId") Integer panelId,
-                              @RequestBody String data) throws Exception {
+    @DeleteMapping("/panel/del/{deviceId}/{panelId}")
+    public String deletePanel(@PathVariable("deviceId")String deviceId,
+                              @PathVariable("panelId") Integer panelId) throws Exception {
         JsonObject res = new JsonObject();
 
-        JsonObject enty = (JsonObject) new JsonParser().parse(data);
-        String shortAddress = enty.get("shortAddress").getAsString();
-        Integer endpoint = enty.get("endpoint").getAsInt();
-
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endpoint);
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
         if (deviceTokenRelation == null) {
             res.addProperty("msg", "device not exist");
             return res.toString();
@@ -276,15 +267,11 @@ public class InfraredController {
         return res.toString();
     }
 
-    @DeleteMapping("/panels/del")
-    public String deletePanels(@RequestBody String data) throws Exception {
+    @DeleteMapping("/panels/del/{deviceId}")
+    public String deletePanels(@PathVariable("deviceId")String deviceId) throws Exception {
         JsonObject res = new JsonObject();
 
-        JsonObject enty = (JsonObject) new JsonParser().parse(data);
-        String shortAddress = enty.get("shortAddress").getAsString();
-        Integer endpoint = enty.get("endpoint").getAsInt();
-
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endpoint);
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
         if (deviceTokenRelation == null) {
             res.addProperty("msg", "device not exist");
             return res.toString();
@@ -440,5 +427,14 @@ public class InfraredController {
         res.addProperty("msg","success");
         res.addProperty("data", 0);
         return res.toString();
+    }
+
+    @GetMapping("/getToken")
+    public String getParentDeviceToken(@RequestParam String shortAddress, @RequestParam Integer endpoint) throws Exception{
+        DeviceTokenRelation d =  deviceTokenRelationService.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress, endpoint);
+        if (d == null) {
+            return null;
+        }
+        return d.getToken();
     }
 }

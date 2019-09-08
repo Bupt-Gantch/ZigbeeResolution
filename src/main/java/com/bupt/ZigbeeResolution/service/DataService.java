@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.xml.bind.util.JAXBSource;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -512,36 +513,27 @@ public class DataService {
                         int high = 0;
                         String attribute = byte2HexStr(Arrays.copyOfRange(bytes, 8, 10)); // 0A 40
                         JsonObject json = new JsonObject();
-//                        json.addProperty("shortAddress", shortAddress);
-//                        json.addProperty("endPoint", endPoint);
                         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+                        DeviceTokenRelation parentDevicceTokenRelation = deviceTokenRelationService.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress,endPoint);
                         switch (bytes[21]) {
-                            case (byte) 0x80:  // 读取版本号
-                                String version = byte2HexStr(Arrays.copyOfRange(bytes, 15, 21));
-                                json.addProperty("version", version);
-//                                json.addProperty("命令类型", "读取版本号");
-                                System.out.println("读取版本号成功, version ==> " + version);
-                                break;
                             case (byte) 0x81:  // 匹配
-//                                json.addProperty("matchRes", (int) bytes[24]);
-//                                json.addProperty("命令类型", "匹配");
+                                json.addProperty("match", (int) bytes[24]);
+                                data.addProperty("match", (int) bytes[24]);
                                 if ((int) bytes[24] == 0) {
-                                    System.out.println("匹配成功");
-                                    data.addProperty("match", "0");
+                                    System.out.println("********************* 匹配成功 *********************");
                                 } else {
-                                    System.out.println("匹配失败");
-                                    data.addProperty("match",'1');
+                                    System.out.println("********************* 匹配失败 *********************");
                                 }
                                 break;
                             case (byte) 0x82:  // 控制
                                 low = bytes[24];
                                 high = bytes[25] << 8;
                                 learnKey = low + high;
-//                                json.addProperty("learnKey", learnKey);
-//                                json.addProperty("命令类型", "控制");
-                                data.addProperty("control","0");
+                                json.addProperty("control", 0);
+                                json.addProperty("key",learnKey);
+                                data.addProperty("control", 0);
                                 data.addProperty("key",learnKey);
-                                System.out.println("控制命令：learnKey=" + learnKey);
+                                System.out.println("********************* 控制命令：按键功能编号 = " + learnKey+ " *********************");
                                 break;
                             case (byte) 0x83:  // 学习
                                 int matchType = bytes[23];
@@ -549,25 +541,22 @@ public class DataService {
                                 high = bytes[25] << 8;
                                 learnKey = low + high;//两字节16进制值转换为int
                                 int learnResult = bytes[26];
-//                                json.addProperty("matchType", matchType);
-//                                json.addProperty("learnKey", learnKey);
-//                                json.addProperty("learnRes", bytes[26]);
-//                                json.addProperty("命令类型", "学习");
+                                json.addProperty("type", matchType);
+                                json.addProperty("key", learnKey);
+                                json.addProperty("learn", learnResult);
+                                data.addProperty("learn", learnResult);
+                                data.addProperty("key", learnKey);
 
                                 //保存红外宝学习码
                                 if (learnResult == 0) {  //
-                                    System.out.println("学习成功");
+                                    System.out.println("********************* 学习成功 *********************");
 //                                    infraredService.updateState(deviceTokenRelation.getUuid(), learnKey); //修改学习码状态为成功
-//                                    infraredService.updateState("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey); //本地测试
-                                    data.addProperty("learn", "0");
                                 } else if (learnResult == 1) {
-                                    System.out.println("学习失败");
+                                    System.out.println("********************* 学习失败 *********************");
                                     infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除失败的学习码
-                                    data.addProperty("learn", "1");
                                 } else {
-                                    System.out.println("存储器空间已满");
+                                    System.out.println("********************* 存储器空间已满 *********************");
                                     infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey);
-                                    data.addProperty("learn", "2");
                                 }
                                 break;
                             case (byte) 0x84:  // 查询当前设备参数
@@ -586,43 +575,52 @@ public class DataService {
                                 data.addProperty("AC", bytes[29] == 0xAA);
                                 data.addProperty("TV", bytes[30] == 0xAA);
                                 data.addProperty("STB", bytes[31] == 0xAA);
-//                                json.addProperty("命令类型", "查询");
-//                                System.out.println("红外宝查询当前设备参数 ==>" + json.toString());
+                                System.out.println("********************* 查询当前设备参数 ==>" + json.toString());
                                 break;
                             case (byte) 0x85:  // 删除该红外设备某个已学习的键
                                 matchType = bytes[23];
                                 low = bytes[24];
                                 high = bytes[25] << 8;
                                 learnKey = low + high;
-//                                json.addProperty("matchType", matchType);
-//                                json.addProperty("learnKey", learnKey);
-//                                json.addProperty("命令类型", "删除键");
+                                json.addProperty("delete", 0);
+                                json.addProperty("key", learnKey);
+                                data.addProperty("delete", 0);
                                 infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除
-                                System.out.println("删除学习键" + learnKey+ " 成功");
+                                System.out.println("********************* 删除学习键 " + learnKey+ " 成功 *********************");
                                 break;
                             case (byte) 0x86:  // 删除该红外设备全部已学习数据
-//                                json.addProperty("命令类型", "删除全部");
+                                json.addProperty("deleteAll", 0);
+                                data.addProperty("deleteAll", 0);
                                 infraredService.deleteAllKey(deviceTokenRelation.getUuid());//删除全部
-                                System.out.println("删除该红外设备全部数据成功");
+                                System.out.println("********************* 删除该红外设备全部数据成功 *********************");
                                 break;
                             case (byte) 0x8A:
-                                //json.addProperty("exitRes", 0);
+                                json.addProperty("exit", 0);
 //                                json.addProperty("命令类型", "退出");
-                                System.out.println("退出匹配或学习状态成功");
+                                data.addProperty("exit", 0);
+                                System.out.println("********************* 退出匹配或学习状态成功 *********************");
                                 break;
                             default:
-                                System.err.println("Unknown instruction type "+ String.valueOf(bytes[21]));
+                                if (bytes[14] == 0x06) { // 获取版本号
+                                    String version = byte2HexStr(Arrays.copyOfRange(bytes, 15, 21));
+                                    JsonObject j = new JsonObject();
+                                    j.addProperty("version", version);
+                                    DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), j.toString());
+                                    System.out.println("********************* 读取版本号成功, version ==> " + version + " *********************");
+                                } else {
+                                    System.err.println("********************* Unknown instruction type " + String.valueOf(bytes[21]) + " *********************");
+                                }
                                 break;
                         }
 
-                        //System.out.println("Publish data of " + deviceTokenRelation.getToken() + " , msg : " + json.toString());
                         // 发送数据到平台
                         try {
-                            DataMessageClient.publishData(deviceTokenRelation.getToken(), json.toString());
                             // rpc 调用返回
-                            gatewayMethod.rpc_callback(deviceTokenRelation, requestId, data);
+                            if (json != null) {
+                                gatewayMethod.rpc_callback(parentDevicceTokenRelation, requestId, json);
+                            }
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            System.err.println(e.getMessage());
                         }
                         break;
 

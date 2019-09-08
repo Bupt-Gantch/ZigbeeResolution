@@ -15,11 +15,11 @@ public class Panel {
 
     @Override
     public String toString() {
-        return "Panel{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", type=" + type +
-                ", timestamp=" + timestamp +
+        return "{" +
+                "\"id\":\"" + id + '\"' +
+                ", \"name\":\"" + name + '\"' +
+                ", \"type\":\"" + type + '\"' +
+                ", \"timestamp\":\"" + timestamp + '\"' +
                 '}';
     }
 }

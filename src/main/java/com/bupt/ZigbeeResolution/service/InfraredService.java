@@ -173,8 +173,11 @@ public class InfraredService {
         if (0== irMapper.insert_panel(p)){
             return 0;
         }
-        return irMapper.insert_panel_relation(deviceId, p.getId());
-
+        int insert = irMapper.insert_panel_relation(deviceId, p.getId());
+        if (insert == 0) {
+            return 0;
+        }
+        return p.getId();
     }
 
     public int updatePanel(Integer panelId, JsonObject data) {

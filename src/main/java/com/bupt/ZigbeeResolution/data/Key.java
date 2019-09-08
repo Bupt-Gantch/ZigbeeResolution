@@ -13,11 +13,11 @@ public class Key {
 
     @Override
     public String toString() {
-        return "Key{" +
-                "id=" + id +
-                ", number=" + number +
-                ", key=" + key +
-                ", name='" + name + '\'' +
+        return "{" +
+                "\"id\":\"" + id + '\"' +
+                ", \"number\":\"" + number + '\"' +
+                ", \"key\":\"" + key + '\"' +
+                ", \"name\":\"" + name + '\"' +
                 '}';
     }
 }

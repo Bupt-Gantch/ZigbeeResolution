@@ -12,6 +12,7 @@ public class DataMessageClient {
     static{
         try{
             client = new MqttClient(Config.HOST, "data", new MemoryPersistence());
+            client.setCallback(new DataMessageCallBack());
         }catch(Exception e){
             e.printStackTrace();
         }

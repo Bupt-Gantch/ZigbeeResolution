@@ -76,18 +76,19 @@ public class SocketServer {
                     @Override
                     public void initChannel(SocketChannel ch)
                             throws Exception {
-                        //ch.pipeline().addLast("frameDecoder", new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
-                        // ChannelRead timeout
-                        ch.pipeline().addLast(new IdleStateHandler(60,0,0, TimeUnit.SECONDS), new TransportHandler(userService,gatewayGroupService,deviceTokenRelationService, sceneService, sceneRelationService));
                         // Decoders
+                        //ch.pipeline().addLast("frameDecoder", new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
                         ch.pipeline().addLast("bytesDecoder", new ByteArrayDecoder());
                         // Encoder
+                        //ch.pipeline().addLast("frameEncoder", new LengthFieldPrepender(4));
                         ch.pipeline().addLast("bytesEncoder", new ByteArrayEncoder());
                         ch.pipeline().addLast(new OutBoundHandler());
+                        ch.pipeline().addLast(new IdleStateHandler(60,0,0, TimeUnit.SECONDS), new TransportHandler(userService,gatewayGroupService,deviceTokenRelationService, sceneService, sceneRelationService));
                     }
                 });
-            // Start the server.
-            serverChannel = b.bind(port).sync().channel();
+        //b.bind(port);
+        // Start the server.
+        serverChannel = b.bind(port).sync().channel();
     }
 
     @PreDestroy

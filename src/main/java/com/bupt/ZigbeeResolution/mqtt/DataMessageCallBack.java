@@ -9,13 +9,13 @@ public class DataMessageCallBack implements MqttCallback{
 	@Override
 	public void connectionLost(Throwable arg0) {
 		// TODO Auto-generated method stub
-		//RpcMqttClient.init();
+		System.err.println("connection lost: " + arg0.getCause());
 	}
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken arg0) {
 		// TODO Auto-generated method stub
-		
+		System.out.println("delivery message complete");
 	}
 
 	@Override

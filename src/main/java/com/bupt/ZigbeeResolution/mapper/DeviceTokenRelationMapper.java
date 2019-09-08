@@ -22,6 +22,9 @@ public interface DeviceTokenRelationMapper {
     @Select("SELECT * FROM deviceTokenRelation WHERE shortAddress = #{shortAddress} AND endPoint = #{endPoint}")
     DeviceTokenRelation getRelotionBySAAndEndPoint(@Param("shortAddress") String shortAddress, @Param("endPoint")Integer endPoint);
 
+    @Select("SELECT * FROM deviceTokenRelation WHERE type = \"Gateway\"  AND gatewayName IN ( SELECT gatewayName FROM deviceTokenRelation WHERE shortAddress = #{shortAddress} AND endPoint = #{endPoint})")
+    DeviceTokenRelation getParentDeviceTokenRelationBySAAndEndpoint(@Param("shortAddress") String shortAddress, @Param("endPoint")Integer endpoint);
+
     @Select("SELECT * FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = 'Gateway'")
     DeviceTokenRelation getGateway(@Param("gatewayName") String gatewayName);
 

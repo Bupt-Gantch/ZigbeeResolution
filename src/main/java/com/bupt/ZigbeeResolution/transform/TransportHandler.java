@@ -39,7 +39,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     public final static String LoginMessage = "[Febit FCloud Server V2.0.0]\r\n[Normal Socket Mode]\r\nLogin:";
     private DataService dataService = new DataService();
     public static byte response = 0x00 ;
-    byte[] b = new byte[] { 4, 0, 31, 0 }; // HeartBeatMessage
+    byte[] b = new byte[] { 4, 0, 31, 0 };
     byte[] bt = new byte[1024];
 
     String ipsname = null;
@@ -137,15 +137,14 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
             if (ch == channel){
 //                System.out.println(SocketServer.bytesToHexString(msg));
-                if (byteA3 == 30) {   // HeartBeatMessage
+                if (byteA3 == 30) { // HeartBeatMessage
                     System.out.println(ctx.toString() + "心跳包" + SocketServer.bytesToHexString(msg));
                     ch.writeAndFlush(b);
                  /*   if(response!=0x00){
                         DataService.setStatetrue();
                         response = 0x00;
                     }*/
-                }else if(byteA3 == 81) { // LoginReply
-//                    System.out.println(Arrays.toString(msg));
+                }else if(byteA3 == 81) { // LoginMessage
                     System.out.println(ctx.toString() + "登录认证" + SocketServer.bytesToHexString(msg));
                     String s = new String(msg);
                     if (s.length() == 16) {
@@ -166,14 +165,14 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     name = item.get("name").getAsString();
                     pwd = item.get("pwd").getAsString();
                     */
+                    name = name.trim();
                     GatewayGroup gatewayGroup = new GatewayGroup(name, ips, ctxip);
-                    System.out.println("网关 " + name + " 登录成功");
+                    System.out.println(ctx.toString() + "网关 " + name + " 登录成功");
                     if(gatewayGroupService.getGatewayGroup(name)!=null){
                         gatewayGroupService.removeGatewayGroupByName(name);
                     }
                     gatewayGroupService.addGatewayGroup(gatewayGroup);
 
-                    // create device and its token, initialize rpc client
                     DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByGatewayNameAndEndPoint(name, 0);
                     if(deviceTokenRelation == null){
                         String token = null;
@@ -194,19 +193,19 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         //mqttMap.put(ips, rpcMqttClient.getMqttClient());
                     }
 
-                    // 向客户端发送 LoginReply
+                    // 发送 LoginReply 消息
                     bt = getSendContent(10, LoginControlMessage.getBytes());
                     channelgroups.add(channel);
                     ch.writeAndFlush(bt);
 
-                    // 获取网关下所有设备
+                    // 发送查询网关下所有设备指令
                     gatewayMethod.getAllDevice(ips);
 
-                }
-                else  if (byteA3 == 12) { // 0x0c ControlMessage
+                } else if (byteA3 == 12) { // 0x0c
                     // TODO ControlMessage
                     System.out.println(ctx.toString() + "控制数据" + SocketServer.bytesToHexString(msg));
                     //chs.writeAndFlush(msg);
+
                 } else if (byteA3 == 11) { // 0x0b UpdateMessage
                     System.out.println(ctx.toString() + "传感器数据" + SocketServer.bytesToHexString(msg));
                     byte[] body = new byte[msg.length-6];
@@ -218,7 +217,9 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     String gatewayName = gatewayGroupService.getGatewayNameByIp(ips);
                     dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService, sceneRelationService);
                     //chs.writeAndFlush(msg);
+
                 } else {
+                    // TODO 其他消息类型
                     System.out.println(ctx.toString() + "未知数据包类型" + SocketServer.bytesToHexString(msg));
                 }
             }
@@ -228,6 +229,11 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     @Override
     public void operationComplete(Future<? super Void> future) throws Exception {
 
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.err.println("客户端 " + getRemoteAddress(ctx) + " 关闭了连接");
     }
 
     public String bytesToHexFun3(byte[] bytes) {
