@@ -2,7 +2,6 @@ package com.bupt.ZigbeeResolution.mapper;
 
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import org.apache.ibatis.annotations.*;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -22,7 +21,7 @@ public interface DeviceTokenRelationMapper {
     @Select("SELECT * FROM deviceTokenRelation WHERE shortAddress = #{shortAddress} AND endPoint = #{endPoint}")
     DeviceTokenRelation getRelotionBySAAndEndPoint(@Param("shortAddress") String shortAddress, @Param("endPoint")Integer endPoint);
 
-    @Select("SELECT * FROM deviceTokenRelation WHERE type = \"Gateway\"  AND gatewayName IN ( SELECT gatewayName FROM deviceTokenRelation WHERE shortAddress = #{shortAddress} AND endPoint = #{endPoint})")
+    @Select("SELECT * FROM deviceTokenRelation WHERE type = \"Gateway\"  AND gatewayName IN ( SELECT gatewayName FROM deviceTokenRelation WHERE shortAddress = #{shortAddress} AND endPoint = #{endPoint} AND type=\"newInfrared\")")
     DeviceTokenRelation getParentDeviceTokenRelationBySAAndEndpoint(@Param("shortAddress") String shortAddress, @Param("endPoint")Integer endpoint);
 
     @Select("SELECT * FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = 'Gateway'")
