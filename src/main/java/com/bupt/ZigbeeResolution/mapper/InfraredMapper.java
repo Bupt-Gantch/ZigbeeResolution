@@ -173,4 +173,7 @@ public interface InfraredMapper {
 
     @Update("UPDATE infrared_key SET `name`=#{name}, number=#{number} WHERE id=#{id}")
     int update_key(Key k);
+
+    @Update("UPDATE infrared_key SET `name`=#{name} WHERE id=#{keyId}")
+    int update_keyName(@Param("keyId")Integer keyId, @Param("name")String name);
 }
