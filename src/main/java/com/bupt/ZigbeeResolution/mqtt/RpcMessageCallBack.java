@@ -3,6 +3,7 @@ package com.bupt.ZigbeeResolution.mqtt;
 import com.bupt.ZigbeeResolution.common.Common;
 import com.bupt.ZigbeeResolution.data.Device;
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
+import com.bupt.ZigbeeResolution.data.Key;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
@@ -311,17 +312,24 @@ public class RpcMessageCallBack implements MqttCallback{
 								} else {
 									key += 1;
 								}
-								if (key >= 602) {
-								    key = irService.get_maxkey(deviceTokenRelation.getUuid()) + 1;
-                                }
-							} // 检验按键编号冲突
-							while (null != irService.findAKey(panelId, number, key)){
+//								if (key >= 602) {
+//								    key = irService.get_maxkey(deviceTokenRelation.getUuid()) + 1;
+//                                }
+							}
+							// 检验按键编号冲突
+							while (null != irService.findAKey(panelId, key)){
 								key += 1;
 							}
 							// 下发学习指令
 							gatewayMethod.IR_learn(controlDevice, ip, version, type, key);
 							// 添加按键到数据库
                             irService.addAKey(panelId, number, key, key_name);
+							Key k = irService.findAKey(panelId,key);
+							if (k != null){
+								irService.updateKeyName(k.getId(), key_name);
+							} else {
+								irService.addAKey(panelId, number, key, key_name);
+							}
 						} else {
 						    System.err.println("device not exists");
                         }
@@ -347,12 +355,14 @@ public class RpcMessageCallBack implements MqttCallback{
 						Integer deleteKey = jsonObject.get("key").getAsInt();
 
 						gatewayMethod.IR_delete_learnt_key(controlDevice, ip, version, type, deleteKey);
+						irService.deleteKey(controlDevice.getDeviceId(), deleteKey);
 						break;
 
 					case "deleteAllKey":
 						version = jsonObject.get("version").getAsString();
 
 						gatewayMethod.IR_delete_learnt_all_key(controlDevice, ip, version);
+						irService.deleteAllKey(controlDevice.getDeviceId());
 						break;
 
 					case "exit":

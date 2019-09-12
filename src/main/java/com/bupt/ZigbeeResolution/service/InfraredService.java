@@ -208,8 +208,8 @@ public class InfraredService {
         return irMapper.select_key_by_id(keyId);
     }
 
-    public Key findAKey(Integer panelId, Integer number, Integer key){
-        return irMapper.select_key_by_number_key(number, key);
+    public Key findAKey(Integer panelId, Integer key){
+        return irMapper.select_key_by_panelId_key(panelId, key);
     }
 
     public List<Key> findKeys(Integer id){
@@ -288,21 +288,24 @@ public class InfraredService {
     }
 
     public int updateKey(Integer id, JsonObject data){
-        if (findAKey(id) == null) {
-            return 0;
-        }
-        Integer number = data.get("number").getAsInt();
-        Integer key = data.get("key").getAsInt();
+//        if (findAKey(id) == null) {
+//            return 0;
+//        }
+//        Integer number = data.get("number").getAsInt();
+//        Integer key = data.get("key").getAsInt();
         String name = data.get("name").getAsString();
 
-        Key k = new Key();
-        k.setId(id);
-        k.setNumber(number);
-        k.setName(name);
-        k.setKey(key);
+//        Key k = new Key();
+//        k.setId(id);
+//        k.setNumber(number);
+//        k.setName(name);
+//        k.setKey(key);
 
-        return irMapper.update_key(k);
+        return updateKeyName(id, name);
+    }
 
+    public int updateKeyName(Integer keyId, String name){
+        return irMapper.update_keyName(keyId, name);
     }
 
 }
