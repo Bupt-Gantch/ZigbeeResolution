@@ -213,13 +213,13 @@ public class InfraredController {
         }
 
         List<Panel> ps = infraredService.findPanels(deviceTokenRelation.getUuid(), sort);
-        if (0 == ps.size()) {
-            res.addProperty("msg", "haven`t create any panel yet!");
-            return res.toString();
-        }
 
         res.addProperty("msg","success");
-        res.addProperty("data", ps.toString());
+        if (ps.size() == 0){
+            res.addProperty("data", "");
+        } else {
+            res.addProperty("data", ps.toString());
+        }
         return res.toString();
     }
 
@@ -325,13 +325,14 @@ public class InfraredController {
         JsonObject res = new JsonObject();
 
         List<Key> ks= infraredService.findKeys(id);
-        if (0 == ks.size()) {
-            res.addProperty("msg", "key not exist, check for params!");
-            return res.toString();
-        }
 
         res.addProperty("msg","success");
-        res.addProperty("data", ks.toString());
+        if (0 == ks.size()) {
+            res.addProperty("data", "");
+        } else {
+            res.addProperty("data", ks.toString());
+        }
+
         return res.toString();
     }
 
@@ -361,7 +362,7 @@ public class InfraredController {
         return res.toString();
     }
 
-    @DeleteMapping("/key/del/{panelId/{keyId}")
+    @DeleteMapping("/key/del/{panelId}/{keyId}")
     public String deleteKey(@PathVariable("panelId") Integer panelId,
                             @PathVariable("keyId") Integer keyId)throws Exception{
 
