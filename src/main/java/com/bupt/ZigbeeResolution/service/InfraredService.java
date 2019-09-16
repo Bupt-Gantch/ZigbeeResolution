@@ -262,9 +262,9 @@ public class InfraredService {
         if (relation == null) {
             return 0;
         }
-        if (null == findPanel(relation.getKey()) || null == findAKey(relation.getValue())){
-            return 0;
-        }
+//        if (null == findPanel(relation.getKey()) || null == findAKey(relation.getValue())){
+//            return 0;
+//        }
         return deleteKey(relation.getKey(),relation.getValue());
 
     }

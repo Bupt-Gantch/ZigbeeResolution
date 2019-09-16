@@ -296,7 +296,6 @@ public class RpcMessageCallBack implements MqttCallback{
                         Integer panelId = jsonObject.get("panelId").getAsInt();       // 面板ID
 						Integer key = null;
 
-//						deviceTokenRelation = new DeviceTokenRelation(2386,"6090DD01008D1500",1,"8TbjprjWobxomsd0uiOr","newInfrared","5200095","11E4","2d01f2e0-79fd-11e9-8fc2-67fbc94ac784");
                         if (null != deviceTokenRelation) {
 							if (type == 1) {
 								key = irService.get_maxkey_of_airCondition(deviceTokenRelation.getUuid());
@@ -323,7 +322,7 @@ public class RpcMessageCallBack implements MqttCallback{
 							// 下发学习指令
 							gatewayMethod.IR_learn(controlDevice, ip, version, type, key);
 							// 添加按键到数据库
-                            irService.addAKey(panelId, number, key, key_name);
+                            //irService.addAKey(panelId, number, key, key_name);
 							Key k = irService.findAKey(panelId,key);
 							if (k != null){
 								irService.updateKeyName(k.getId(), key_name);
