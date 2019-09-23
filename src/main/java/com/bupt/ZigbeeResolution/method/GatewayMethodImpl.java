@@ -389,7 +389,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x55;
-        //byte dataLength = (byte)(0xFF & (version_byte.length + 3));
         bytes[index++] = (byte) 0x09;
         byte[] version_byte = TransportHandler.toBytes(version);
         System.arraycopy(version_byte, 0, bytes, index, version_byte.length);
@@ -397,10 +396,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x81;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
-        //byte count = DataService.count_bytes(version_byte);
-        //bytes[index] = (byte) (9 + count + (byte) 0x81 + matchType);
-        byte[] countValue = new byte[11];
-        System.arraycopy(bytes, index-11, countValue, 0, 11);
+        byte[] countValue = new byte[10];
+        System.arraycopy(bytes, index-10, countValue, 0, 10);
         bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
@@ -439,8 +436,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) (0xFF & matchType);
         bytes[index++] = (byte) (0x00FF & key);
         bytes[index++] = (byte) (0xFF & key>>8);
-        //byte count = DataService.count_bytes(version_byte);
-        //bytes[index] = (byte) (0x0B + count + (byte) 0x83  + matchType + key);
         byte[] countValue = new byte[12];
         System.arraycopy(bytes, index-12, countValue, 0, 12);
         bytes[index] = DataService.count_bytes(countValue);
@@ -482,8 +477,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) (0xFF & matchType);
         bytes[index++] = (byte) (0x00FF & key);
         bytes[index++] = (byte) (0xFF & key>>8);
-        //byte count = DataService.count_bytes(version_byte);
-        //bytes[index] = (byte) (0x0B + count + (byte) 0x82 + matchType + key);
         byte[] countValue = new byte[12];
         System.arraycopy(bytes, index-12, countValue, 0, 12);
         bytes[index] = DataService.count_bytes(countValue);
@@ -520,8 +513,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         index = index + version_byte.length;
         bytes[index++] = (byte) 0x84;
         bytes[index++] = (byte) 0x00;
-        //byte count = DataService.count_bytes(version_byte);
-        //bytes[index] = (byte) (0x08 + count + (byte) 0x84);
         byte[] countValue = new byte[9];
         System.arraycopy(bytes, index-9, countValue, 0, 9);
         bytes[index] = DataService.count_bytes(countValue);
@@ -560,7 +551,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) (0xFF & matchType);
         bytes[index++] = (byte) (0xFF & key);
         bytes[index++] = (byte) (0xFF & key>>8);
-        //byte count = DataService.count_bytes(version_byte);
         byte[] countValue = new byte[12];
         System.arraycopy(bytes, index-12, countValue, 0, 12);
         bytes[index] = DataService.count_bytes(countValue);
@@ -596,8 +586,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         index = index + version_byte.length;
         bytes[index++] = (byte) 0x86;
         bytes[index++] = (byte) 0x00;
-        //byte count = DataService.count_bytes(version_byte);
-        //bytes[index] = (byte) (0x08 + count + (byte) 0x86 );
         byte[] countValue = new byte[9];
         System.arraycopy(bytes, index-9, countValue, 0, 9);
         bytes[index] = DataService.count_bytes(countValue);
