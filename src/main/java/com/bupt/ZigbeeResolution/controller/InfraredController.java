@@ -1,17 +1,19 @@
 package com.bupt.ZigbeeResolution.controller;
 
-import com.bupt.ZigbeeResolution.data.Key;
-import com.bupt.ZigbeeResolution.data.Learn;
-import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
-import com.bupt.ZigbeeResolution.data.Panel;
+import com.bupt.ZigbeeResolution.data.*;
+import com.bupt.ZigbeeResolution.method.GatewayMethod;
+import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.InfraredService;
+import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description: 红外宝
@@ -305,6 +307,44 @@ public class InfraredController {
         return res.toString();
     }
 
+    @PostMapping("/panel/upd/{panelId}/condition")
+    public String updatePanelCondition(@PathVariable("panelId")Integer panelId,
+                                       @RequestBody String condition) throws Exception{
+
+        JsonObject res = new JsonObject();
+
+        JsonObject data = (JsonObject)new JsonParser().parse(condition);
+        String power = data.get("power").getAsString();
+        String mode = data.get("mode").getAsString();
+        String windLevel = data.get("windLevel").getAsString();
+        String windDirection = data.get("windDirection").getAsString();
+        String tem = data.get("tem").getAsString();
+        Integer keyId = infraredService.getAirConditionPresetKey(power,mode,windLevel,windDirection,tem);
+
+        if (keyId != null) {
+            if (infraredService.updatePanelCondition(panelId, keyId) != 0) {
+                res.addProperty("msg", "success");
+                return res.toString();
+            }
+        }
+        res.addProperty("msg","fail");
+        return res.toString();
+    }
+
+    @GetMapping("/key/get/{keyId}/condition")
+    public String getAirConditionAttributes(@PathVariable("keyId")Integer keyId){
+        JsonObject res = new JsonObject();
+        AirConditionKey airConditionKey = infraredService.getAirConditionKeyAttributes(keyId);
+        if (null != airConditionKey) {
+            res.addProperty("msg", "success");
+            res.addProperty("data", airConditionKey.toString());
+        } else {
+            res.addProperty("msg", "fail");
+        }
+        return res.toString();
+
+    }
+
     @GetMapping("/key/get/{keyId}")
     public String getKey(@PathVariable("keyId") Integer keyId) throws Exception {
 
@@ -318,6 +358,24 @@ public class InfraredController {
 
         res.addProperty("msg", k.toString());
         return res.toString();
+    }
+
+    @GetMapping("/key/get")
+    public int getPowerKey(@RequestParam("power")String power,
+                                           @RequestParam("mode")String mode,
+                                           @RequestParam("windLevel")String windLevel,
+                                           @RequestParam("windDirection")String windDirection,
+                                           @RequestParam("tem")String tem) {
+
+        if (power.equals("关机")){
+            return 1;
+        }
+        try {
+            return infraredService.getAirConditionPresetKey(power, mode, windLevel, windDirection, tem);
+        } catch (Exception e) {
+            System.err.println("get aircondition key fail\n" + e.getCause());
+        }
+        return 13;
     }
 
     @GetMapping("/keys/get/{panelId}")

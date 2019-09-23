@@ -1,8 +1,10 @@
 package com.bupt.ZigbeeResolution.mapper;
 
+import com.bupt.ZigbeeResolution.data.AirConditionKey;
 import com.bupt.ZigbeeResolution.data.Key;
 import com.bupt.ZigbeeResolution.data.Learn;
 import com.bupt.ZigbeeResolution.data.Panel;
+import com.google.gson.JsonObject;
 import javafx.util.Pair;
 import org.apache.ibatis.annotations.*;
 
@@ -104,7 +106,7 @@ public interface InfraredMapper {
 
         public String SortedSelect(Map<String, Object> para) {
             Integer sort = (Integer)para.get("sort");
-            String sql = "SELECT T2.id, T2.`name`, T2.`timestamp`, T2.type FROM infrared_panel_relation AS T1 INNER JOIN infrared_panel AS T2 ON T1.panel_id=T2.id WHERE T1.device_id = #{deviceId}";
+            String sql = "SELECT T2.id, T2.`name`, T2.`timestamp`, T2.type, T2.condition FROM infrared_panel_relation AS T1 INNER JOIN infrared_panel AS T2 ON T1.panel_id=T2.id WHERE T1.device_id = #{deviceId}";
             if (sort == null)
                 return sql;
             switch (sort) {
@@ -136,7 +138,7 @@ public interface InfraredMapper {
     @Delete("DELETE FROM infrared_panel WHERE id = #{panelId}")
     int delete_panel_by_id(@Param("panelId")Integer panelId);
 
-    @Insert("INSERT INTO infrared_panel(`name`,type,timestamp) VALUES(#{name}, #{type}, current_timestamp)")
+    @Insert("INSERT INTO infrared_panel(`name`,type, `condition`, timestamp) VALUES(#{name}, #{type}, #{condition}, current_timestamp)")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert_panel(Panel p);
 
@@ -145,6 +147,9 @@ public interface InfraredMapper {
 
     @Update("UPDATE infrared_panel SET `name` = #{name}, type = #{type} WHERE id = #{id}")
     int update_panel(Panel p);
+
+    @Update("UPDATE infrared_panel SET `condition` = #{condition} WHERE id = #{panelId}")
+    int update_panel_condition(@Param("panelId")Integer panelId, @Param("condition")Integer condition);
 
     @Select("SELECT * FROM infrared_key WHERE id=#{keyId}")
     Key select_key_by_id(@Param("keyId")Integer  keyId);
@@ -176,4 +181,13 @@ public interface InfraredMapper {
 
     @Update("UPDATE infrared_key SET `name`=#{name} WHERE id=#{keyId}")
     int update_keyName(@Param("keyId")Integer keyId, @Param("name")String name);
+
+    @Select("SELECT id FROM infrared_panel_aircondition WHERE power=#{power} " +
+            "AND mode=#{mode} AND windLevel=#{windLevel} " +
+            "AND windDirection=#{windDirection} AND tem=#{tem}")
+    int select_key_of_AirCondition(@Param("power")String power, @Param("mode")String mode, @Param("windLevel")String windLevel,
+                              @Param("windDirection")String windDirection, @Param("tem")String tem);
+
+    @Select("SELECT * FROM infrared_panel_aircondition WHERE id = #{id}")
+    AirConditionKey select_airconditionKey_attributes(@Param("id")Integer id);
 }

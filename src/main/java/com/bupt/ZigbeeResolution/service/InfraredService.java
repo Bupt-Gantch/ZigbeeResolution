@@ -1,10 +1,13 @@
 package com.bupt.ZigbeeResolution.service;
 
+import com.bupt.ZigbeeResolution.data.AirConditionKey;
 import com.bupt.ZigbeeResolution.data.Key;
 import com.bupt.ZigbeeResolution.data.Learn;
 import com.bupt.ZigbeeResolution.data.Panel;
 import com.bupt.ZigbeeResolution.mapper.InfraredMapper;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class InfraredService {
@@ -169,6 +173,7 @@ public class InfraredService {
         p.setName(name);
         p.setTimestamp(time);
         p.setType(type);
+        p.setCondition(13);
 
         if (0== irMapper.insert_panel(p)){
             return 0;
@@ -306,6 +311,25 @@ public class InfraredService {
 
     public int updateKeyName(Integer keyId, String name){
         return irMapper.update_keyName(keyId, name);
+    }
+
+    public int getAirConditionPresetKey(String power, String mode, String windLevel, String windDirectin, String tem) {
+        return irMapper.select_key_of_AirCondition(power, mode, windLevel, windDirectin, tem);
+    }
+
+    public int updatePanelCondition(Integer panelId, Integer condition){
+        try{
+//            new JsonParser().parse(condition);
+            return irMapper.update_panel_condition(panelId, condition);
+        } catch (JsonParseException e){
+            System.err.println("condition is not json string");
+            return 0;
+        }
+    }
+
+
+    public AirConditionKey getAirConditionKeyAttributes(Integer id){
+        return irMapper.select_airconditionKey_attributes(id);
     }
 
 }
