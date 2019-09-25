@@ -1,24 +1,16 @@
 package com.bupt.ZigbeeResolution.controller;
 
 import com.bupt.ZigbeeResolution.data.*;
-import com.bupt.ZigbeeResolution.method.GatewayMethod;
-import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
-import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.InfraredService;
-import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import de.unkrig.commons.nullanalysis.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
-/**
- * @description: 红外宝
- * @date: 2019/7/19
- */
 
 @RestController
 @RequestMapping("api/v1/infrared")
@@ -178,33 +170,40 @@ public class InfraredController {
     }
 
     //============================================================================
+    //============================================================================
+    //============================================================================
+
 
     @GetMapping("/panel/get/{deviceId}/{panelId}")
     public String getPanel(@PathVariable("deviceId")String deviceId,
-                           @PathVariable("panelId") Integer id) throws Exception{
+                           @PathVariable("panelId") Integer id){
 
         JsonObject res = new JsonObject();
 
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
-        if (deviceTokenRelation == null) {
-            res.addProperty("msg", "device not exist!");
-            return res.toString();
-        }
+        try {
+            DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
+            if (deviceTokenRelation == null) {
+                res.addProperty("msg", "device not exist!");
+                return res.toString();
+            }
 
-        Panel p = infraredService.findPanel(id);
-        if (null == p) {
-            res.addProperty("msg", "panel not exist!");
-            return res.toString();
+            Panel p = infraredService.findPanel(id);
+            if (null == p) {
+                res.addProperty("msg", "panel not exist!");
+                return res.toString();
+            }
+            res.addProperty("msg","success");
+            res.addProperty("data", p.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
-
-        res.addProperty("msg","success");
-        res.addProperty("data", p.toString());
         return res.toString();
     }
 
     @GetMapping("/panels/get/{deviceId}")
     public String getPanels(@PathVariable("deviceId") String deviceId,
-                            @RequestParam(value = "sort", required = false) Integer sort) throws Exception{
+                            @RequestParam(value = "sort", required = false) Integer sort) {
 
         JsonObject res = new JsonObject();
 
@@ -214,20 +213,21 @@ public class InfraredController {
             return res.toString();
         }
 
-        List<Panel> ps = infraredService.findPanels(deviceTokenRelation.getUuid(), sort);
+        try {
+            List<Panel> ps = infraredService.findPanels(deviceTokenRelation.getUuid(), sort);
 
-        res.addProperty("msg","success");
-        if (ps.size() == 0){
-            res.addProperty("data", "");
-        } else {
+            res.addProperty("msg", "success");
             res.addProperty("data", ps.toString());
+        } catch (Exception e){
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
         return res.toString();
     }
 
     @PostMapping("/panel/add/{deviceId}")
     public String createPanel(@PathVariable("deviceId")String deviceId,
-                              @RequestBody String data) throws Exception {
+                              @RequestBody String data)  {
         JsonObject res = new JsonObject();
 
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
@@ -235,21 +235,25 @@ public class InfraredController {
             res.addProperty("msg", "device not exist");
             return res.toString();
         }
+        try {
+            int insert = infraredService.addPanel(deviceTokenRelation.getUuid(), (JsonObject) new JsonParser().parse(data));
+            if (insert == 0) {
+                res.addProperty("msg", "batis operation fail -> insert");
+                return res.toString();
+            }
 
-        int insert = infraredService.addPanel(deviceTokenRelation.getUuid() , (JsonObject) new JsonParser().parse(data));
-        if (insert == 0){
-            res.addProperty("msg", "batis operation fail -> insert");
-            return res.toString();
+            res.addProperty("msg", "success");
+            res.addProperty("data", insert);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
-
-        res.addProperty("msg","success");
-        res.addProperty("data", insert);
         return res.toString();
     }
 
     @DeleteMapping("/panel/del/{deviceId}/{panelId}")
     public String deletePanel(@PathVariable("deviceId")String deviceId,
-                              @PathVariable("panelId") Integer panelId) throws Exception {
+                              @PathVariable("panelId") Integer panelId) {
         JsonObject res = new JsonObject();
 
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
@@ -257,20 +261,24 @@ public class InfraredController {
             res.addProperty("msg", "device not exist");
             return res.toString();
         }
+        try {
+            int delete = infraredService.deletePanel(deviceTokenRelation.getUuid(), panelId);
+            if (delete == 0) {
+                res.addProperty("msg", "batis operation fail -> delete");
+                return res.toString();
+            }
 
-        int delete = infraredService.deletePanel(deviceTokenRelation.getUuid(), panelId);
-        if (delete == 0){
-            res.addProperty("msg", "batis operation fail -> delete");
-            return res.toString();
+            res.addProperty("msg", "success");
+            res.addProperty("data", 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
-
-        res.addProperty("msg","success");
-        res.addProperty("data", 0);
         return res.toString();
     }
 
     @DeleteMapping("/panels/del/{deviceId}")
-    public String deletePanels(@PathVariable("deviceId")String deviceId) throws Exception {
+    public String deletePanels(@PathVariable("deviceId")String deviceId) {
         JsonObject res = new JsonObject();
 
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
@@ -278,38 +286,46 @@ public class InfraredController {
             res.addProperty("msg", "device not exist");
             return res.toString();
         }
+        try {
+            int delete = infraredService.deletePanels(deviceTokenRelation.getUuid());
+            if (delete == 0) {
+                res.addProperty("msg", "batis operation fail -> delete");
+                return res.toString();
+            }
 
-        int delete = infraredService.deletePanels(deviceTokenRelation.getUuid());
-        if (delete == 0){
-            res.addProperty("msg", "batis operation fail -> delete");
-            return res.toString();
+            res.addProperty("msg", "success");
+            res.addProperty("data", 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
-
-        res.addProperty("msg","success");
-        res.addProperty("data", 0);
         return res.toString();
     }
 
     @PostMapping("/panel/upd/{panelId}")
     public String updatePanel(@PathVariable("panelId") Integer panelId,
-                              @RequestBody String data)throws Exception{
+                              @RequestBody String data){
 
         JsonObject res = new JsonObject();
+        try {
+            int update = infraredService.updatePanel(panelId, (JsonObject) new JsonParser().parse(data));
+            if (update == 0) {
+                res.addProperty("msg", "batis operation fail -> update");
+                return res.toString();
+            }
 
-        int update = infraredService.updatePanel(panelId, (JsonObject) new JsonParser().parse(data));
-        if (update == 0){
-            res.addProperty("msg", "batis operation fail -> update");
-            return res.toString();
+            res.addProperty("msg", "success");
+            res.addProperty("data", 0);
+        } catch (Exception e){
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
-
-        res.addProperty("msg","success");
-        res.addProperty("data", 0);
         return res.toString();
     }
 
     @PostMapping("/panel/upd/{panelId}/condition")
     public String updatePanelCondition(@PathVariable("panelId")Integer panelId,
-                                       @RequestBody String condition) throws Exception{
+                                       @RequestBody String condition){
 
         JsonObject res = new JsonObject();
 
@@ -319,44 +335,59 @@ public class InfraredController {
         String windLevel = data.get("windLevel").getAsString();
         String windDirection = data.get("windDirection").getAsString();
         String tem = data.get("tem").getAsString();
-        Integer keyId = infraredService.getAirConditionPresetKey(power,mode,windLevel,windDirection,tem);
+        try {
+            @NotNull
+            Integer keyId = infraredService.getAirConditionPresetKey(power, mode, windLevel, windDirection, tem);
 
-        if (keyId != null) {
             if (infraredService.updatePanelCondition(panelId, keyId) != 0) {
                 res.addProperty("msg", "success");
                 return res.toString();
             }
+            res.addProperty("msg", "update condition fail");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
-        res.addProperty("msg","fail");
         return res.toString();
     }
 
     @GetMapping("/key/get/{keyId}/condition")
     public String getAirConditionAttributes(@PathVariable("keyId")Integer keyId){
         JsonObject res = new JsonObject();
-        AirConditionKey airConditionKey = infraredService.getAirConditionKeyAttributes(keyId);
-        if (null != airConditionKey) {
-            res.addProperty("msg", "success");
-            res.addProperty("data", airConditionKey.toString());
-        } else {
-            res.addProperty("msg", "fail");
+        try {
+            AirConditionKey airConditionKey = infraredService.getAirConditionKeyAttributes(keyId);
+            if (null != airConditionKey) {
+                res.addProperty("msg", "success");
+                res.addProperty("data", airConditionKey.toString());
+            } else {
+                res.addProperty("msg", "key not exists");
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
         return res.toString();
 
     }
 
     @GetMapping("/key/get/{keyId}")
-    public String getKey(@PathVariable("keyId") Integer keyId) throws Exception {
+    public String getKey(@PathVariable("keyId") Integer keyId) {
 
         JsonObject res = new JsonObject();
 
-        Key k = infraredService.findAKey(keyId);
-        if (null == k) {
-            res.addProperty("msg", "key not exist, check for params!");
-            return res.toString();
-        }
+        try {
+            Key k = infraredService.findAKey(keyId);
+            if (null == k) {
+                res.addProperty("msg", "key not exist, check for params!");
+                return res.toString();
+            }
 
-        res.addProperty("msg", k.toString());
+            res.addProperty("msg", k.toString());
+        } catch (Exception e){
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
+        }
         return res.toString();
     }
 
@@ -379,16 +410,17 @@ public class InfraredController {
     }
 
     @GetMapping("/keys/get/{panelId}")
-    public String getKeys(@PathVariable("panelId") Integer id) throws Exception {
+    public String getKeys(@PathVariable("panelId") Integer id) {
         JsonObject res = new JsonObject();
 
-        List<Key> ks= infraredService.findKeys(id);
-
-        res.addProperty("msg","success");
-        if (0 == ks.size()) {
-            res.addProperty("data", "");
-        } else {
+        try {
+            List<Key> ks = infraredService.findKeys(id);
+            res.addProperty("msg", "success");
             res.addProperty("data", ks.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
         }
 
         return res.toString();
@@ -396,104 +428,131 @@ public class InfraredController {
 
     @PostMapping("key/add/{panelId}")
     public String createKey(@PathVariable("panelId") Integer panelId,
-                            @RequestBody String data)throws Exception{
+                            @RequestBody String data){
         JsonObject res = new JsonObject();
 
-        Panel p = infraredService.findPanel(panelId);
-        if (null == p) {
-            res.addProperty("msg", "panel not exist, check for params!");
-            return res.toString();
-        }
+        try {
+            Panel p = infraredService.findPanel(panelId);
+            if (null == p) {
+                res.addProperty("msg", "panel not exist, check for params!");
+                return res.toString();
+            }
 
-        JsonObject data1 = (JsonObject) new JsonParser().parse(data);
-        Integer number = data1.get("number").getAsInt();
-        String name = data1.get("name").getAsString();
-        Integer key = data1.get("key").getAsInt();
-        int insert = infraredService.addAKey(panelId, number, key, name);
-        if (0 == insert) {
-            res.addProperty("msg", "batis operation fail -> insert");
-            return res.toString();
-        }
+            JsonObject data1 = (JsonObject) new JsonParser().parse(data);
+            Integer number = data1.get("number").getAsInt();
+            String name = data1.get("name").getAsString();
+            Integer key = data1.get("key").getAsInt();
 
-        res.addProperty("msg","success");
-        res.addProperty("data", 0);
+            int insert = infraredService.addAKey(panelId, number, key, name);
+            if (0 == insert) {
+                res.addProperty("msg", "batis operation fail -> insert");
+                return res.toString();
+            }
+
+            res.addProperty("msg", "success");
+            res.addProperty("data", 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
+        }
         return res.toString();
     }
 
     @DeleteMapping("/key/del/{panelId}/{keyId}")
     public String deleteKey(@PathVariable("panelId") Integer panelId,
-                            @PathVariable("keyId") Integer keyId)throws Exception{
+                            @PathVariable("keyId") Integer keyId){
 
         JsonObject res = new JsonObject();
 
-        if (null == infraredService.findPanel(panelId)) {
-            res.addProperty("msg", "panel not exist, check for params!");
-            return res.toString();
-        }
+        try {
+            if (null == infraredService.findPanel(panelId)) {
+                res.addProperty("msg", "panel not exist, check for params!");
+                return res.toString();
+            }
 
-        if (null == infraredService.findAKey(keyId)) {
-            res.addProperty("msg", "key not exist, check for params!");
-            return res.toString();
-        }
+            if (null == infraredService.findAKey(keyId)) {
+                res.addProperty("msg", "key not exist, check for params!");
+                return res.toString();
+            }
 
-        int delete = infraredService.deleteKey(panelId, keyId);
-        if (0 == delete) {
-            res.addProperty("msg", "batis operation fail -> delete");
-            return res.toString();
-        }
+            int delete = infraredService.deleteKey(panelId, keyId);
+            if (0 == delete) {
+                res.addProperty("msg", "batis operation fail -> delete");
+                return res.toString();
+            }
 
-        res.addProperty("msg","success");
-        res.addProperty("data", 0);
+            res.addProperty("msg", "success");
+            res.addProperty("data", 0);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
+        }
         return res.toString();
     }
 
     @DeleteMapping("/keys/del/{panelId}")
-    public String deleteKeys(@PathVariable("panelId") Integer panelId) throws Exception{
+    public String deleteKeys(@PathVariable("panelId") Integer panelId) {
         JsonObject res = new JsonObject();
 
-        if (null == infraredService.findPanel(panelId)) {
-            res.addProperty("msg", "panel not exist, check for params!");
-            return res.toString();
-        }
+        try {
+            if (null == infraredService.findPanel(panelId)) {
+                res.addProperty("msg", "panel not exist, check for params!");
+                return res.toString();
+            }
 
-        int delete = infraredService.deleteKeys(panelId);
-        if (0 == delete) {
-            res.addProperty("msg", "batis operation fail -> delete");
-            return res.toString();
-        }
+            int delete = infraredService.deleteKeys(panelId);
+            if (0 == delete) {
+                res.addProperty("msg", "batis operation fail -> delete");
+                return res.toString();
+            }
 
-        res.addProperty("msg","success");
-        res.addProperty("data", 0);
+            res.addProperty("msg", "success");
+            res.addProperty("data", 0);
+        } catch (Exception e){
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
+        }
         return res.toString();
     }
 
     @PostMapping("/key/upd/{keyId}")
     public String updateKey(@PathVariable("keyId") Integer keyId,
-                            @RequestBody String data) throws Exception{
+                            @RequestBody String data){
         JsonObject res = new JsonObject();
 
-        if (null == infraredService.findAKey(keyId)) {
-            res.addProperty("msg", "key not exist, check for params!");
-            return res.toString();
-        }
+        try {
+            if (null == infraredService.findAKey(keyId)) {
+                res.addProperty("msg", "key not exist, check for params!");
+                return res.toString();
+            }
 
-        int update = infraredService.updateKey(keyId, (JsonObject) new JsonParser().parse(data));
-        if (0 == update) {
-            res.addProperty("msg", "batis operation fail -> update");
-            return res.toString();
-        }
+            int update = infraredService.updateKey(keyId, (JsonObject) new JsonParser().parse(data));
+            if (0 == update) {
+                res.addProperty("msg", "batis operation fail -> update");
+                return res.toString();
+            }
 
-        res.addProperty("msg","success");
-        res.addProperty("data", 0);
+            res.addProperty("msg", "success");
+            res.addProperty("data", 0);
+        } catch(Exception e) {
+            e.printStackTrace();
+            res.addProperty("msg",e.getMessage());
+        }
         return res.toString();
     }
 
     @GetMapping("/getToken")
-    public String getParentDeviceToken(@RequestParam String shortAddress, @RequestParam Integer endpoint) throws Exception{
-        DeviceTokenRelation d =  deviceTokenRelationService.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress, endpoint);
-        if (d == null) {
-            return null;
+    public String getParentDeviceToken(@RequestParam String shortAddress, @RequestParam Integer endpoint){
+        try {
+            DeviceTokenRelation d = deviceTokenRelationService.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress, endpoint);
+            if (d == null) {
+                return null;
+            }
+            return d.getToken();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return d.getToken();
+        return null;
     }
 }
