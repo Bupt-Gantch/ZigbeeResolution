@@ -5,12 +5,10 @@ import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import com.bupt.ZigbeeResolution.data.OpLog;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
-import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.InfraredService;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -260,6 +258,10 @@ public class RpcMessageCallBack implements MqttCallback{
                 switch (jsonObject.get("methodName").getAsString()){
 					case "getVersion":  // 获取版本号
 						gatewayMethod.IR_get_version(controlDevice, ip);
+						// mqtt回调
+						JsonObject json = new JsonObject();
+						json.addProperty("version", version);
+						rpcMqttClient.publicResponce(requestId, json.toString());
 						break;
 
 					case "match":  // 码组匹配
@@ -304,7 +306,7 @@ public class RpcMessageCallBack implements MqttCallback{
                                 }
                                 gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
 
-                                irService.addKey(deviceTokenRelation.getUuid(), learn_key, key_name, matchType);
+//                                irService.addKey(deviceTokenRelation.getUuid(), learn_key, key_name, matchType);
                             } catch (Exception e){
                                 OpLog log = new OpLog("infrared", "learn", "exception");
                                 logger.error(log.toString());

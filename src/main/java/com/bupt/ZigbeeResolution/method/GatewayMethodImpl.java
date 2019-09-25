@@ -10,6 +10,7 @@ import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
 import java.util.List;
 
@@ -937,7 +938,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = device.getEndpoint();
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+        ChannelFuture future = SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void setDeviceState(Device device, byte state, String ip) {

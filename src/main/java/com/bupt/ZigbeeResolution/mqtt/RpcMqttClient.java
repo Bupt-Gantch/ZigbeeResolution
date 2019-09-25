@@ -32,7 +32,6 @@ public class RpcMqttClient {
         if(gatewayGroupService.getGatewayGroup(gatewayName)!=null){
             try{
                 if(rpcMqtt!=null){
-//                rpcMqtt.disconnect();
                     rpcMqtt.close();
                 }
                 rpcMqtt = null;
@@ -56,7 +55,8 @@ public class RpcMqttClient {
         return true;
     }
 
-    public void publicResponce(String topic,String data) throws Exception{
+    public void publicResponce(Integer requestId,String data) throws Exception{
+        String topic = Config.RPC_RESPONSE_TOPIC + requestId;
         MqttMessage msg = new MqttMessage();
         msg.setPayload(data.getBytes(Charset.forName("utf-8")));
         if(rpcMqtt.isConnected()){

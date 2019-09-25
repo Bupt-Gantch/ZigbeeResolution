@@ -17,11 +17,18 @@ import java.util.List;
 
 public class DataService {
     private static List<Object> list = new LinkedList<Object>();
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private GatewayMethod gatewayMethod = new GatewayMethodImpl();
+
     public static void cleatList(){
         list.clear();
     }
+
+    @Autowired
+    private InfraredService infraredService;
+
     Integer length;
     String shortAddress;
     int endPoint;
@@ -583,77 +590,102 @@ public class DataService {
                 alog.setRes_type((byte)0x70);
                 switch(clusterId){
                     case "0000":  // infrared
-                        int seq = (int)bytes[7];
-
-                        String attribute = byte2HexStr(Arrays.copyOfRange(bytes,8,10)); // 0A 40
-
-                        switch(bytes[21]){
-                            case (byte)0x81:  // 匹配
-                                alog.setService("infrared match");
-                                logger.info(alog.toString());
-                                System.out.println(String.format("match result -> %s",bytes[24]==0?"succeed":"fail"));
-                                data.addProperty("matchRes", (int)bytes[24]); // 匹配结果
+                        int seq = (int) bytes[7]; //报告个数
+                        int learnKey = -1;
+                        int low = 0;
+                        int high = 0;
+                        String attribute = byte2HexStr(Arrays.copyOfRange(bytes, 8, 10)); // 0A 40
+                        JsonObject json = new JsonObject();
+                        json.addProperty("shortAddress", shortAddress);
+                        json.addProperty("endPoint", endPoint);
+                        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+                        switch (bytes[21]) {
+                            case (byte) 0x81:  // 匹配
+                                json.addProperty("matchRes", (int) bytes[24]);
+                                json.addProperty("命令类型", "匹配");
+                                if ((int) bytes[24] == 0) {
+                                    System.out.println("匹配成功");
+                                } else {
+                                    System.out.println("匹配失败");
+                                }
                                 break;
-
-                            case (byte)0x82:  // 控制
-                                //int key = bytes[24] + bytes[25] * 16;
-                                //data.addProperty("key", key);
-                                alog.setService("infrared control");
-                                logger.info(alog.toString());
+                            case (byte) 0x82:  // 控制
+                                low = bytes[24];
+                                high = bytes[25] << 8;
+                                learnKey = low + high;
+                                json.addProperty("learnKey", learnKey);
+                                json.addProperty("命令类型", "控制");
+                                System.out.println("控制命令：learnKey=" + learnKey);
                                 break;
+                            case (byte) 0x83:  // 学习
+                                int matchType = bytes[23];
+                                low = bytes[24];
+                                high = bytes[25] << 8;
+                                learnKey = low + high;//两字节16进制值转换为int
+                                int learnResult = bytes[26];
+                                json.addProperty("matchType", matchType);
+                                json.addProperty("learnKey", learnKey);
+                                json.addProperty("learnRes", bytes[26]);
+                                json.addProperty("命令类型", "学习");
 
-                            case (byte)0x83:  // 学习
-                                deviceType = bytes[23];
-                                key = bytes[24] + bytes[25] * 16;
-                                alog.setService("infrared learn");
-                                logger.info(alog.toString());
-                                data.addProperty("learnRes", bytes[26]);
+                                //保存红外宝学习码
+                                if (learnResult == 0) {  //
+                                    System.out.println("学习成功");
+                                    infraredService.updateState(deviceTokenRelation.getUuid(), learnKey); //修改学习码状态为成功
+//                                    infraredService.updateState("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey); //本地测试
+                                } else if (learnResult == 1) {
+                                    System.out.println("学习失败");
+                                    infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除失败的学习码
+//                                      infraredService.deleteKey("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey);//本地测试
+                                } else {
+                                    System.out.println("存储器空间已满");
+                                    infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey);
+                                }
                                 break;
-
-                            case (byte)0x84:  // 查询当前设备参数
-                                int AC_key = bytes[23] + bytes[24] * 16 * 16;
-                                int TV_key = bytes[25] + bytes[26] * 16 * 16;
-                                int STB_key = bytes[27] + bytes[28] * 16 * 16;
-                                alog.setService("get current infrared device detail");
-                                logger.info(alog.toString());
-                                data.addProperty("AC_key", AC_key);
-                                data.addProperty("TV_key", TV_key);
-                                data.addProperty("STB_key", STB_key);
-                                data.addProperty("AC", bytes[29]==0xAA);
-                                data.addProperty("TV", bytes[30]==0xAA);
-                                data.addProperty("STB", bytes[31]==0xAA);
+                            case (byte) 0x84:  // 查询当前设备参数
+                                int AC_key = (int) bytes[23] + bytes[24] << 8;
+                                int TV_key = (int) bytes[25] + bytes[26] << 8;
+                                int STB_key = (int) bytes[27] + bytes[28] << 8;
+                                json.addProperty("AC_key", AC_key);
+                                json.addProperty("TV_key", TV_key);
+                                json.addProperty("STB_key", STB_key);
+                                json.addProperty("AC", bytes[29] == 0xAA);
+                                json.addProperty("TV", bytes[30] == 0xAA);
+                                json.addProperty("STB", bytes[31] == 0xAA);
+                                json.addProperty("命令类型", "查询");
                                 break;
-
-                            case (byte)0x85:  // 删除某个学习的键
-                                //matchType = bytes[23];
-                                //key = bytes[24] + bytes[25] * 16;
-                                //data.addProperty("matchType", matchType);
-                                //data.addProperty("key", key);
-                                alog.setService("infrared control (delete key)");
-                                logger.info(alog.toString());
+                            case (byte) 0x85:  // 删除该红外设备某个已学习的键
+                                matchType = bytes[23];
+                                low = bytes[24];
+                                high = bytes[25] << 8;
+                                learnKey = low + high;
+                                json.addProperty("matchType", matchType);
+                                json.addProperty("learnKey", learnKey);
+                                json.addProperty("命令类型", "删除键");
+                                infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除
+                                System.out.println("删除学习键 " + learnKey+" 成功");
                                 break;
-
-                            case (byte)0x86:  // 删除全部学习数据
-                                //data.addProperty("deleteRes", 0);
-                                alog.setService("infrared control (delete all keys");
-                                logger.info(alog.toString());
+                            case (byte) 0x86:  // 删除该红外设备全部已学习数据
+                                json.addProperty("命令类型", "删除全部");
+                                infraredService.deleteAllKey(deviceTokenRelation.getUuid());//删除全部
+                                System.out.println("删除该红外设备全部数据成功");
                                 break;
-
-                            case (byte)0x8A:
-                                //data.addProperty("exitRes", 0);
-                                alog.setService("infrared control (exit learn)");
-                                logger.info(alog.toString());
+                            case (byte) 0x8A:
+                                //json.addProperty("exitRes", 0);
+                                json.addProperty("命令类型", "退出");
+                                System.out.println("退出匹配或学习状态成功");
                                 break;
-
-                            default:
-                                JsonObject json = new JsonObject();
+                            default://0x80 读取版本号
                                 String version = byte2HexStr(Arrays.copyOfRange(bytes, 15, 21));
+                                System.out.println("IR version : " + version);
                                 json.addProperty("version", version);
-                                DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-                                DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), json.toString());
+                                json.addProperty("命令类型", "读取版本号");
+                                System.out.println("读取版本号成功");
                                 break;
-
                         }
+
+                        System.out.println("shortAddress : " + shortAddress + " ,endpoint : " + endPoint + " , deviceToken : " + deviceTokenRelation.getToken() + " , msg : " + json.toString());
+                        DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), json.toString());
                         break;
 
                     case "0204":  // 温度传感器上报数据
