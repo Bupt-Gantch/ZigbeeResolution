@@ -2,7 +2,6 @@ package com.bupt.ZigbeeResolution.service;
 
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import com.bupt.ZigbeeResolution.mapper.DeviceTokenRelationMapper;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +36,10 @@ public class DeviceTokenRelationService {
 
     public  DeviceTokenRelation getRelotionBySAAndEndPoint(String shortAddress, Integer endPoint){
         return deviceTokenRelationMapper.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+    }
+
+    public DeviceTokenRelation getParentDeviceTokenRelationBySAAndEndpoint(String shortAddress, Integer endPoint){
+        return deviceTokenRelationMapper.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress, endPoint);
     }
 
     public DeviceTokenRelation getGateway(String gatewayName){

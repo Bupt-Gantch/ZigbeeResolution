@@ -27,6 +27,13 @@ dist/
 nbdist/
 .nb-gradle/
 
+<<<<<<< HEAD
 ### Properties ###
 application.yml
 log.properties
+=======
+### test  ###
+src/main/java/com/bupt/ZigbeeResolution/controller/TestController.java
+
+application.yml
+>>>>>>> devpeng

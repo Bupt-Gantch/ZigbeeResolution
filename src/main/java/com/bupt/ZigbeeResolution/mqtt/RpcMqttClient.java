@@ -44,7 +44,7 @@ public class RpcMqttClient {
                 optionforRpcMqtt.setUserName(token);
                 rpcMqtt.setCallback(new RpcMessageCallBack(rpcMqtt, token, gatewayGroupService, gatewayName));
                 rpcMqtt.connect(optionforRpcMqtt);
-                rpcMqtt.subscribe(Config.RPC_TOPIC,1);
+                rpcMqtt.subscribe(Config.RPC_TOPIC,0);
             }catch(Exception e){
                 e.printStackTrace();
                 return false;

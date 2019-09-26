@@ -17,12 +17,23 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
+<<<<<<< HEAD
     url: jdbc:mysql://118.190.202.148:3306/BUPT_IOT?serverTimezone=GMT&characterEncoding=UTF-8   #jdbc:mysql://localhost:3306/dbgirl_test?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
 #    url: jdbc:mysql://127.0.0.1:3306/crm?serverTimezone=GMT&characterEncoding=UTF-8
+=======
+    url: jdbc:mysql://118.190.202.148:3306/BUPT_IOT?characterEncoding=UTF-8
+#    url: jdbc:mysql://localhost:3306/dbgirl_test?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+>>>>>>> devpeng
     username: root
     password: Gantch815
 #    password: 123456
 
+
+#  datasource:
+#    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://127.0.0.1:3306/BUPT_IOT?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+#    username: root
+#    password: 123456
 
 mybatis:
   configuration:

@@ -49,8 +49,16 @@ public interface GatewayMethod {
     //设置指定设备的开关状态
     void setDeviceState(Device device, byte state, String ip);
 
+<<<<<<< HEAD
     //设置指定设备的开关状态
     void setSoundLightAlarmState(Device device, byte state, String ip);
+=======
+  //设置指定设备的开关状态
+  void setSoundLightAlarmState(Device device, byte state, String ip);
+
+  //设置指定设备的开关状态
+  void setAlarmState(Device device, byte state, String ip, int time);
+>>>>>>> devpeng
 
     //设置指定设备的开关状态
     void setAlarmState(Device device, byte state, String ip, int time);
@@ -222,5 +230,13 @@ public interface GatewayMethod {
 
     void setColorTemperature_CallBack();
 
+<<<<<<< HEAD
     void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService,  GatewayGroupService gatewayGroupService) throws Exception;
+=======
+  void getInfraredVersionCallBack(String token, String version );
+
+  void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService,  GatewayGroupService gatewayGroupService) throws Exception;
+
+  void rpc_callback(DeviceTokenRelation deviceTokenRelation, int requestId, JsonObject data)throws Exception;
+>>>>>>> devpeng
 }

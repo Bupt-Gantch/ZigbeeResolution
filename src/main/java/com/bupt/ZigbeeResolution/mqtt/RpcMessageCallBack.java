@@ -1,23 +1,35 @@
 package com.bupt.ZigbeeResolution.mqtt;
 
+import com.bupt.ZigbeeResolution.common.Common;
 import com.bupt.ZigbeeResolution.data.Device;
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
+<<<<<<< HEAD
 import com.bupt.ZigbeeResolution.data.OpLog;
+=======
+import com.bupt.ZigbeeResolution.data.Key;
+>>>>>>> devpeng
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.InfraredService;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
+<<<<<<< HEAD
+=======
+import com.bupt.ZigbeeResolution.util.SpringUtil;
+>>>>>>> devpeng
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+<<<<<<< HEAD
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+>>>>>>> devpeng
 
 public class RpcMessageCallBack implements MqttCallback{
 	private String token;
@@ -26,22 +38,27 @@ public class RpcMessageCallBack implements MqttCallback{
 	private GatewayMethod gatewayMethod = new GatewayMethodImpl();
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	@Autowired
-	InfraredService irService;
+	Common instance = Common.getInstance();
 
-	@Autowired
-	DeviceTokenRelationService deviceTokenRelationService;
+	InfraredService irService = (InfraredService) SpringUtil.getBean("infraredService");
+
+	DeviceTokenRelationService deviceTokenRelationService = (DeviceTokenRelationService)SpringUtil.getBean("deviceTokenRelationService");
 
 	public RpcMessageCallBack(MqttClient rpcMqtt,String token, GatewayGroupService gatewayGroupService, String gatewayName){
 		this.token = token;
 		this.rpcMqttClient = new RpcMqttClient(gatewayName,token, gatewayGroupService);
 		this.gatewayGroupService = gatewayGroupService;
 	}
+	public RpcMessageCallBack(){}
 
 	@Override
 	public void connectionLost(Throwable arg0) {
+<<<<<<< HEAD
 		logger.warn("进入mqtt断线回调");
 		//System.out.println("进入mqtt断线回调");
+=======
+		System.out.println("进入mqtt断线回调" + arg0.getCause());
+>>>>>>> devpeng
 		//SecondActivity.wrapper.init();
 		while (!rpcMqttClient.init()){
 			try {
@@ -59,20 +76,37 @@ public class RpcMessageCallBack implements MqttCallback{
 
 	@Override
 	public void messageArrived(String topic, MqttMessage msg) throws Exception {
+<<<<<<< HEAD
 		System.out.println(msg);
+=======
+		System.out.printf("received rpc message, topic %s , msg " + msg, topic);
+
+>>>>>>> devpeng
 		JsonObject jsonObject = new JsonParser().parse(new String(msg.getPayload())).getAsJsonObject();
+		String shortAddress = jsonObject.get("shortAddress").getAsString();
+		byte endpoint = jsonObject.get("Endpoint").getAsByte();
+
+		// store requestId
 		Integer position = topic.lastIndexOf("/");
 		Integer requestId = Integer.parseInt(topic.substring(position+1));
 		System.out.println(requestId);
+		instance.putRequestId(shortAddress+endpoint, requestId);
 
+<<<<<<< HEAD
 		switch (jsonObject.get("serviceName").getAsString()){
+=======
+		String serviceName = jsonObject.get("serviceName").getAsString();
+		String methodName = jsonObject.get("methodName").getAsString();
+
+		switch (serviceName){
+>>>>>>> devpeng
 			case "control switch":
-				switch (jsonObject.get("methodName").getAsString()){
+				switch (methodName){
 					case "setstate":
 						try {
 							Device controlDevice = new Device();
-							controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
-							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
+							controlDevice.setShortAddress(shortAddress);
+							controlDevice.setEndpoint(endpoint);
 
 							byte state;
 							if (jsonObject.get("status").getAsString().equals("true")) {
@@ -80,7 +114,6 @@ public class RpcMessageCallBack implements MqttCallback{
 							} else {
 								state = 0x00;
 							}
-							//System.out.println("进入控制");
 
 							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
 							if (ip == null) {
@@ -95,9 +128,13 @@ public class RpcMessageCallBack implements MqttCallback{
 							gatewayMethod.setDeviceState(controlDevice, state, ip);
 							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"success");
 						}catch (Exception e){
+<<<<<<< HEAD
 							OpLog opLog = new OpLog("switch", "set status","exception", e.getMessage());
 							logger.error(opLog.toString());
 							//System.out.println(e);
+=======
+							System.out.println(e.getMessage());
+>>>>>>> devpeng
 						}
 
 						break;
@@ -105,12 +142,12 @@ public class RpcMessageCallBack implements MqttCallback{
 				break;
 
 			case "control dimmableLight":
-				switch (jsonObject.get("methodName").getAsString()){
+				switch (methodName){
 					case "setbright":
 						try {
 							Device controlDevice = new Device();
-							controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
-							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
+							controlDevice.setShortAddress(shortAddress);
+							controlDevice.setEndpoint(endpoint);
 
 							byte bright;
 							bright = (byte)(0xFF & Integer.parseInt(jsonObject.get("bright").getAsString()));
@@ -138,12 +175,12 @@ public class RpcMessageCallBack implements MqttCallback{
 				break;
 
 			case "control curtain":
-				switch (jsonObject.get("methodName").getAsString()){
+				switch (methodName){
 					case "setstate":
 						try {
 							Device controlDevice = new Device();
-							controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
-							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
+							controlDevice.setShortAddress(shortAddress);
+							controlDevice.setEndpoint(endpoint);
 
 							byte state;
 							state = (byte)(0xFF & Integer.parseInt(jsonObject.get("status").getAsString()));
@@ -171,19 +208,42 @@ public class RpcMessageCallBack implements MqttCallback{
 				}
 				break;
 
+			case "control SoundLightAlarm":
+				switch (methodName){
+					case "setstate" :
+						try {
+							Device controlDevice = new Device();
+							controlDevice.setShortAddress(shortAddress);
+							controlDevice.setEndpoint(endpoint);
+
+							byte state;
+                            state = (byte)(0xFF & Integer.parseInt(jsonObject.get("status").getAsString()));
+
+							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
+							if (ip == null) {
+								System.out.println("Gateway offline");
+							}
+
+							System.out.println(ip);
+							gatewayMethod.setSoundLightAlarmState(controlDevice, state, ip);
+						}catch (Exception e){
+							System.out.println(e);
+						}
+						break;
+				}
+				break;
+
 			case "control alarm":
-				switch (jsonObject.get("methodName").getAsString()){
+				switch (methodName){
 					case "setstate":
 						try {
 							Device controlDevice = new Device();
-							controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
-							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
+							controlDevice.setShortAddress(shortAddress);
+							controlDevice.setEndpoint(endpoint);
 
 							byte state;
 							state = (byte)(0xFF & Integer.parseInt(jsonObject.get("status").getAsString()));
 							int time = jsonObject.get("time").getAsInt();
-
-									//System.out.println("进入控制");
 
 							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
 							if (ip == null) {
@@ -192,10 +252,14 @@ public class RpcMessageCallBack implements MqttCallback{
 								//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
 							}
 
+<<<<<<< HEAD
 
 							OpLog opLog = new OpLog("alarm", "setstate","succeed");
 							logger.info(opLog.toString());
 							System.out.println("gateway ip: " + ip );
+=======
+							System.out.println(ip);
+>>>>>>> devpeng
 							gatewayMethod.setAlarmState(controlDevice,state,ip,time);
 
 							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"success");
@@ -209,11 +273,11 @@ public class RpcMessageCallBack implements MqttCallback{
 				break;
 
 			case "control lock":
-				switch (jsonObject.get("methodName").getAsString()){
+				switch (methodName){
 					case "setstate":
 						Device controlDevice = new Device();
-						controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
-						controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
+						controlDevice.setShortAddress(shortAddress);
+						controlDevice.setEndpoint(endpoint);
 
 						byte state;
 						state = (byte)(0xFF & Integer.parseInt(jsonObject.get("status").getAsString()));
@@ -242,7 +306,9 @@ public class RpcMessageCallBack implements MqttCallback{
 				break;
 
             case "control IR":
+            	System.out.println("///////////////// 进入红外宝指令下发 /////////////////");
 				Device controlDevice = new Device();
+<<<<<<< HEAD
 				controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
 				controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
 				String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
@@ -257,6 +323,35 @@ public class RpcMessageCallBack implements MqttCallback{
 
                 switch (jsonObject.get("methodName").getAsString()){
 					case "getVersion":  // 获取版本号
+=======
+				controlDevice.setShortAddress(shortAddress);
+				controlDevice.setEndpoint(endpoint);
+                String version = "";
+                int type = 5;
+
+                DeviceTokenRelation deviceTokenRelation = null;
+                DeviceTokenRelation d = null;
+                try {
+                    deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(controlDevice.getShortAddress(), (int) controlDevice.getEndpoint());
+                    d = deviceTokenRelationService.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress, (int)endpoint);
+                }catch (Exception e){
+                    JsonObject errMsg = new JsonObject();
+                    errMsg.addProperty("errMsg", e.getMessage());
+                    gatewayMethod.rpc_callback(d, requestId , errMsg);
+                    e.printStackTrace();
+                    return;
+                }
+
+                String ip = gatewayGroupService.getGatewayIp(shortAddress, (0xFF)&endpoint);
+                if (ip == null) {
+                    System.out.println("Gateway offline");
+                    DataMessageClient.publishResponse( d.getToken() ,requestId,"gateway offline");
+                    return;
+                }
+
+                switch (methodName){
+					case "getVersion":
+>>>>>>> devpeng
 						gatewayMethod.IR_get_version(controlDevice, ip);
 						// mqtt回调
 						JsonObject json = new JsonObject();
@@ -265,6 +360,7 @@ public class RpcMessageCallBack implements MqttCallback{
 						break;
 
 					case "match":  // 码组匹配
+<<<<<<< HEAD
 						try {
 							version = jsonObject.get("version").getAsString();
 							matchType = jsonObject.get("matchType").getAsInt();
@@ -312,36 +408,108 @@ public class RpcMessageCallBack implements MqttCallback{
                                 logger.error(log.toString());
                             }
 						}
+=======
+						version = jsonObject.get("version").getAsString();
+						type = jsonObject.get("type").getAsInt();
+
+						gatewayMethod.IR_match(controlDevice, ip, version, type);
+						break;
+
+                    case "learn":  // 码组学习
+						System.out.println("---------- 学习 ----------");
+						version = jsonObject.get("version").getAsString();            // 版本号
+						type = jsonObject.get("type").getAsInt();           // 设备类型
+                        String key_name = jsonObject.get("keyName").getAsString(); // 按钮名称
+                        Integer number = jsonObject.get("number").getAsInt();     // 按钮ID
+                        Integer panelId = jsonObject.get("panelId").getAsInt();       // 面板ID
+						Integer key = null;
+
+                        if (null != deviceTokenRelation) {
+							if (type == 1) {
+								key = irService.get_maxkey_of_airCondition(deviceTokenRelation.getUuid());
+								if(null == key){ // 若从未学习过按键, 空调设备从603开始
+									key = 603;
+								} else {  // 若已学习过按键，取（key + 1）为当前值
+									key += 1;
+								}
+							} else {
+								key = irService.get_maxkey_of_non_airConditon(deviceTokenRelation.getUuid());
+								if (null == key) {
+									key = 44; // 若从未学习过按键, 其他红外设备从44开始
+								} else {
+									key += 1;
+								}
+//								if (key >= 602) {
+//								    key = irService.get_maxkey(deviceTokenRelation.getUuid()) + 1;
+//                                }
+							}
+							// 检验按键编号冲突
+							while (null != irService.findAKey(panelId, key)){
+								key += 1;
+							}
+							// 下发学习指令
+							gatewayMethod.IR_learn(controlDevice, ip, version, type, key);
+							// 添加按键到数据库
+                            //irService.addAKey(panelId, number, key, key_name);
+							Key k = irService.findAKey(panelId,key);
+							if (k != null){
+								irService.updateKeyName(k.getId(), key_name);
+							} else {
+								irService.addAKey(panelId, number, key, key_name);
+							}
+						} else {
+						    System.err.println("device not exists");
+                        }
+>>>>>>> devpeng
                         break;
 
 					case "penetrate":
 						version = jsonObject.get("version").getAsString();
-						matchType = jsonObject.get("matchType").getAsInt();
+						type = jsonObject.get("type").getAsInt();
 						Integer control_key = jsonObject.get("key").getAsInt();
 
+<<<<<<< HEAD
 						gatewayMethod.IR_penetrate(controlDevice, ip, version,0, matchType, control_key);
+=======
+						gatewayMethod.IR_penetrate(controlDevice, ip, version,0, type, control_key);
+>>>>>>> devpeng
 						break;
 
 					case "currentKey":
 						version = jsonObject.get("version").getAsString();
+<<<<<<< HEAD
+=======
+
+>>>>>>> devpeng
 						gatewayMethod.IR_query_current_device_params(controlDevice, ip, version);
 						break;
 
 					case "deleteKey":
 						version = jsonObject.get("version").getAsString();
-						matchType = jsonObject.get("matchType").getAsInt();
+						type = jsonObject.get("type").getAsInt();
 						Integer deleteKey = jsonObject.get("key").getAsInt();
+<<<<<<< HEAD
 						gatewayMethod.IR_delete_learnt_key(controlDevice, ip, version, matchType, deleteKey);
+=======
+
+						gatewayMethod.IR_delete_learnt_key(controlDevice, ip, version, type, deleteKey);
+						irService.deleteKey(controlDevice.getDeviceId(), deleteKey);
+>>>>>>> devpeng
 						break;
 
 					case "deleteAllKey":
 						version = jsonObject.get("version").getAsString();
+<<<<<<< HEAD
 						if (ip == null) {
                             OpLog opLog = new OpLog("infrared", "delete all keys","fail", "gateway is offline");
                             logger.error(opLog.toString());
 							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
 						}
+=======
+
+>>>>>>> devpeng
 						gatewayMethod.IR_delete_learnt_all_key(controlDevice, ip, version);
+						irService.deleteAllKey(controlDevice.getDeviceId());
 						break;
 
 					case "exit":
@@ -388,8 +556,14 @@ public class RpcMessageCallBack implements MqttCallback{
 
 					case "selectCache":
 						byte selectCacheMethod = 0x0A;
+<<<<<<< HEAD
+=======
+
+>>>>>>> devpeng
 						gatewayMethod.controlIR(controlDevice, ip, null, selectCacheMethod);
 						break;
+					case "control":
+                        break;
                 }
                 break;
 		}
