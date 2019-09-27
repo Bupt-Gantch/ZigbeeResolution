@@ -29,6 +29,7 @@ public class DataMessageClient {
         msg.setQos(0);
         client.publish(Config.datatopic, msg);
         client.disconnect();
+        System.out.println("数据发布成功");
     }
 
     public static synchronized void publishAttribute(String token,String data) throws  Exception{
@@ -43,6 +44,7 @@ public class DataMessageClient {
         msg.setQos(0);
         client.publish(Config.attributetopic, msg);
         client.disconnect();
+        System.out.println("属性发布成功");
     }
 
     public static synchronized void publishResponse(String token, int requestId, String data) throws Exception {
@@ -57,5 +59,6 @@ public class DataMessageClient {
         msg.setQos(0);
         client.publish(Config.RPC_RESPONSE_TOPIC + String.valueOf(requestId), msg);
         client.disconnect();
+        System.out.println("指令返回发布成功");
     }
 }
