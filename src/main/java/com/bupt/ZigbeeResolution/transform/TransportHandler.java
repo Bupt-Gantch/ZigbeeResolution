@@ -59,12 +59,17 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        // ��channel map�����channel��Ϣ
+
+        System.out.println("网关 " + getIPString(ctx) + " 连接成功");
+
+        // 保存网关 channel
         SocketServer.getMap().put(getIPString(ctx), ctx.channel());
         Channel channel = ctx.channel();
+
+        // 向网关发送 LoginMessage
         bt = getSendContent(80, LoginMessage.getBytes());
         channel.write(bt);
-        System.out.println("网关 " + getIPString(ctx) + " 连接成功");
+
     }
 
     @Override
@@ -78,9 +83,11 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        // ɾ��Channel Map�е�ʧЧClient
+        // 网关 channel 关闭 （断电，断网...）
         String ip =getRemoteAddress(ctx);
         System.out.println("设备下线:"+ip.substring(1));
+
+        // 从 Map 中移除网关 channel
         String gatewayName = gatewayGroupService.getGatewayNameByIp(ip.substring(1));
         if(gatewayName!=null){
             gatewayGroupService.removeGatewayGroupByIp(ip.substring(1));
@@ -117,15 +124,10 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
-<<<<<<< HEAD
-        System.out.println("orgin-msg:" + SocketServer.bytesToHexString(msg));
-=======
         System.out.println("origin-msg received:" + SocketServer.bytesToHexString(msg));
->>>>>>> devpeng
         String name = null;
         String pwd = null;
         byte byteA3 = msg[2];
-//        byte byteA3 = 0x0b;
         Channel channel = ctx.channel();
         String ctxip = channel.toString();
         String ip = getRemoteAddress(ctx);
@@ -141,18 +143,14 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
             }
 
             if (ch == channel){
-//                System.out.println(SocketServer.bytesToHexString(msg));
                 if (byteA3 == 30) { // HeartBeatMessage
                     System.out.println(ctx.toString() + "心跳包" + SocketServer.bytesToHexString(msg));
                     ch.writeAndFlush(b);
-                 /*   if(response!=0x00){
-                        DataService.setStatetrue();
-                        response = 0x00;
-                    }*/
+
                 }else if(byteA3 == 81) { // LoginMessage
                     System.out.println(ctx.toString() + "登录认证" + SocketServer.bytesToHexString(msg));
                     String s = new String(msg);
-                    /*if (s.length() == 16) {
+                    if (s.length() == 16) {
                         name = s.substring(6, 11);
                         pwd = s.substring(12, 16);
                     } else if (s.length() == 17) {
@@ -164,24 +162,13 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     } else if (s.length() == 19) {
                         name = s.substring(6,14);
                         pwd = s.substring(15,19);
-                    }*/
-//                    int length = s.length();
-//                    name = s.substring(6, length - 5);
-//                    pwd = s.substring(length - 4, length);
-                    /*  用空格分割网关名和密码 */
-                    JsonObject item = dataService.getItem(s.substring(6, s.length()));
-                    if(item == null) {
-                        System.out.println("ERROR: gateway info missed");
-                        return;
                     }
+                    /*  用空格分割网关名和密码
+                    JsonObject item = dataService.getItem(s.substring(6, s.length()));
                     name = item.get("name").getAsString();
                     pwd = item.get("pwd").getAsString();
-<<<<<<< HEAD
-
-=======
                     */
                     name = name.trim();
->>>>>>> devpeng
                     GatewayGroup gatewayGroup = new GatewayGroup(name, ips, ctxip);
                     System.out.println(ctx.toString() + "网关 " + name + " 登录成功");
                     if(gatewayGroupService.getGatewayGroup(name)!=null){
@@ -190,20 +177,28 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     gatewayGroupService.addGatewayGroup(gatewayGroup);
 
                     DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByGatewayNameAndEndPoint(name, 0);
-                    if(deviceTokenRelation == null){
-                        String token = null;
+                    if(deviceTokenRelation == null){  // 网关未接入过平台
                         //hc.httplogin();
+                        // 调用 deviceaccess 接口创建设备 TODO 以后改成RPC调用
                         String id = hc.httpcreate("Gateway_"+name, "","Gateway", "");
-                        token = hc.httpfind(id);
+                        String token = hc.httpfind(id);
+
+                        // mysql.deviceTokenRelation 插入记录
                         DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(id, 0, token,"Gateway", name,"0000", id);
                         deviceTokenRelationService.addARelation(newDeviceTokenRelation);
+
+                        // 初始化网关的 mqtt 客户端
                         RpcMqttClient rpcMqttClient = new RpcMqttClient(name, token, gatewayGroupService);
                         rpcMqttClient.init();
+                        //mqttMap.put(ips, rpcMqttClient.getMqttClient());
+
+                        // 上传网关密码属性
                         JsonObject data = new JsonObject();
                         data.addProperty("pwd", pwd);
                         DataMessageClient.publishAttribute(id,data.toString());
-                        //mqttMap.put(ips, rpcMqttClient.getMqttClient());
-                    }else{
+
+                    }else{ // 网关已接入平台，重新入网
+                        // 重新初始化 mqtt 客户端
                         RpcMqttClient rpcMqttClient = new RpcMqttClient(deviceTokenRelation.getGatewayName(), deviceTokenRelation.getToken(), gatewayGroupService);
                         rpcMqttClient.init();
                         //mqttMap.put(ips, rpcMqttClient.getMqttClient());
@@ -224,16 +219,14 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
                 } else if (byteA3 == 11) { // 0x0b UpdateMessage
                     System.out.println(ctx.toString() + "传感器数据" + SocketServer.bytesToHexString(msg));
+
+                    // 去掉数据包头
                     byte[] body = new byte[msg.length-6];
                     System.arraycopy(msg, 6, body, 0, msg.length-6);
-                    /*if(body[0]!=response){
-                        DataService.setStatetrue();
-                        response = 0x00;
-                    }*/
                     String gatewayName = gatewayGroupService.getGatewayNameByIp(ips);
+
+                    // 解析设备上报数据
                     dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService, sceneRelationService);
-//                    dataService.resolution(msg, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService, sceneRelationService);
-                    //chs.writeAndFlush(msg);
 
                 } else {
                     // TODO 其他消息类型
@@ -294,15 +287,16 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         int messageLength = message.length;
         int contentLength = message.length + 6;
 
-        byte message_low = (byte) (messageLength & 0x00ff); // �����Ϣ��λ�ֽ�
-        byte message_high = (byte) ((messageLength >> 8) & 0xff);// �����Ϣ��λ�ֽ�
+        byte message_low = (byte) (messageLength & 0x00ff); // 数据包总长度
+        byte message_high = (byte) ((messageLength >> 8) & 0xff);
 
-        byte type_low = (byte) (type & 0x00ff); // ������͵�λ�ֽ�
-        byte type_high = (byte) ((type >> 8) & 0xff);// ������͸�λ�ֽ�
+        byte type_low = (byte) (type & 0x00ff); // 数据包类型
+        byte type_high = (byte) ((type >> 8) & 0xff);
 
-        byte content_low = (byte) (contentLength & 0x00ff); // ������ݳ��ȵ�λ�ֽ�
-        byte content_high = (byte) ((contentLength >> 8) & 0xff);// ������ݳ��ȸ�λ�ֽ�
+        byte content_low = (byte) (contentLength & 0x00ff); // （后续）有效数据长度
+        byte content_high = (byte) ((contentLength >> 8) & 0xff);
 
+        // 数据包头部
         byte[] headMessage = new byte[6];
         headMessage[0] = content_low;
         headMessage[1] = content_high;
@@ -311,9 +305,11 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         headMessage[4] = message_low;
         headMessage[5] = message_high;
 
+        // 拼接数据包头部和有效数据
         byte[] sendContent = new byte[contentLength];
         System.arraycopy(headMessage, 0, sendContent, 0, 6);
         System.arraycopy(message, 0, sendContent, 6, messageLength);
+
         return sendContent;
     }
 }
