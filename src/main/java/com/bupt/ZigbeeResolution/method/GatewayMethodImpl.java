@@ -9,11 +9,8 @@ import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mysql.cj.util.StringUtils;
 import io.netty.channel.Channel;
-<<<<<<< HEAD
-import io.netty.channel.ChannelFuture;
-=======
->>>>>>> devpeng
 
 import java.util.List;
 
@@ -447,10 +444,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         System.out.println("下发指令");
         sendMessage = TransportHandler.getSendContent(12, bytes);
         Channel channel = SocketServer.getMap().get(ip);
-<<<<<<< HEAD
-        System.out.println("IR_LEARN : "+channel.remoteAddress());
-=======
->>>>>>> devpeng
         channel.writeAndFlush(sendMessage);
     }
 
@@ -940,7 +933,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = device.getEndpoint();
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        ChannelFuture future = SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void setDeviceState(Device device, byte state, String ip) {
@@ -1476,17 +1469,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
-//    public void IR_get_version_CallBack(Device device, String ip, byte[] version,
-//                                        DeviceTokenRelationService deviceTokenRelationService,
-//                                        GatewayGroupService gatewayGroupService)
-//            throws Exception {
-//        /*  上传版本属性  */
-//        String version_str  = DataService.byte2HexStr(version);
-//        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())));
-//        JsonObject version_json = new JsonObject();
-//        version_json.addProperty("version", version_str);
-//        DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), version_json.toString());
-//    }
 
     public void permitDeviceJoinTheGateway_CallBack(){
 
@@ -1512,23 +1494,49 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     }
 
+    /**
+     * 下发查询网关所有设备指令，网关返回设备信息，解析并处理
+     * @param device
+     * @param gatewayName
+     * @param deviceTokenRelationService
+     * @param gatewayGroupService
+     * @throws Exception
+     */
     @Override
     public void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, GatewayGroupService gatewayGroupService) throws Exception {
-        System.out.println(device.toString());
+
+        System.out.printf("设备 %s 入网成功\n", device.getDeviceId());
+        System.out.println(device);
+
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())));
-        if(deviceTokenRelation == null){
-            String token = null;
+
+        if(deviceTokenRelation == null){ // 该设备是新设备
+
+            System.out.println("接入一个新设备");
+
+            String token;
             String type = DataService.deviceId2Type(device.getDeviceId());
             Integer deviceNumber = deviceTokenRelationService.getDeviceNumber();
             DeviceTokenRelation gateway = deviceTokenRelationService.getGateway(gatewayName);
+
             //httpControl.httplogin();
-            if(!device.getSnid().equals("") && device.getSnid()!=null) {
+            // 创建新设备
+            if(!StringUtils.isNullOrEmpty(device.getSnid().trim())) {
+
+                // httpcreate() 函数调用 deviceaccess 的接口创建设备
+                // 根据设备类型和数据库当前自动增长id值给设备命名
                 String id = httpControl.httpcreate(type+"_"+deviceNumber.toString(), gateway.getIEEE(),type, device.getSnid());
                 token = httpControl.httpfind(id);
 
                 DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress(), id);
+
+                // 插入 deviceTokenRelation
                 deviceTokenRelationService.addARelation(newDeviceTokenRelation);
+
+                // 上传设备属性
                 DataMessageClient.publishAttribute(token, device.toString());
+
+                // 上传设备数据:在线/离线状态
                 JsonObject jsonObject = new JsonObject();
                 if(device.getOnlineState()==3){
                     jsonObject.addProperty("online",1D);
@@ -1536,42 +1544,53 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                     jsonObject.addProperty("online",0D);
                 }
                 DataMessageClient.publishData(token,jsonObject.toString());
-            }else{
-/*              GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayName);
 
-                GatewayMethod gatewayMethod = new GatewayMethodImpl();
-                gatewayMethod.getAllDevice(gatewayGroup.getIp());*/
+            }else{
+                System.out.println("设备SN码为空，请检查设备上传数据！");
+
             }
 
-            // if device type is infrared, get its version and then publish it
-            if (type == "infrared" || type == "newInfrared") {
+            // 如果该设备是红外宝，下发指令获取版本属性值，收到返回后上传
+            if (type.equals("infrared") || type.equals("newInfrared")) {
                 String ip = gatewayGroupService.getGatewayIp(device.getShortAddress(), Integer.parseInt(String.valueOf(device.getEndpoint())));
                 IR_get_version(device, ip);
             }
 
-        }else{
-            if(!device.getShortAddress().equals(deviceTokenRelation.getShortAddress())){  // update shortAddress
+        }else{  // 该设备已经存在于平台
+
+            System.out.println("该设备已存在，更新设备数据...");
+
+            if(!device.getShortAddress().equals(deviceTokenRelation.getShortAddress())){ // update and publish shortAddress
                 deviceTokenRelationService.updateShortAddress(device.getShortAddress(), device.getIEEE());
                 DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
-                JsonObject jsonObject = new JsonObject();
+
             }
-            if(!gatewayName.equals(deviceTokenRelation.getGatewayName())){  // update gateway name
+            if(!gatewayName.equals(deviceTokenRelation.getGatewayName())){   // update and publish gateway name
                 deviceTokenRelationService.updateGatewayName(gatewayName, device.getIEEE());
                 String deviceJson = httpControl.httpGetDevice(deviceTokenRelation.getUuid());
                 DeviceTokenRelation gatewayInfo = deviceTokenRelationService.getGateway(gatewayName);
 
-                if (!deviceJson.equals("") && deviceJson != null) {
+                if (!StringUtils.isNullOrEmpty(deviceJson)) {
+                    // update cassandra device
                     JsonObject jsonObject = (JsonObject) new JsonParser().parse(deviceJson);
                     jsonObject.remove("parentDeviceId");
                     jsonObject.addProperty("parentDeviceId", gatewayInfo.getUuid());
-
                     httpControl.UpdateDevice(jsonObject.toString());
+
+                    // publish attribute
                     DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
+
+                } else {
+                    // TODO throw NullOrIOException
+                    System.err.println("获取设备信息为空，设备不存在或网络异常");
+
                 }
+
             }else{
                 DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
             }
 
+            // reduplicate with previous case, extract outside
             JsonObject jsonObject = new JsonObject();
             if(device.getOnlineState()==3){
                 jsonObject.addProperty("online",1D);
@@ -1590,17 +1609,19 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     @Override
     public void deviceState_CallBack(Device device,DeviceTokenRelationService deviceTokenRelationService){
-        System.out.println(device.getShortAddress()+"-"+device.getEndpoint()+":"+device.getState());
+//        System.out.println(device.getShortAddress()+"-"+device.getEndpoint()+":"+device.getState());
+        System.out.println("设备 " + device.getDeviceId() +", 状态 "+device.getState());
+
         DeviceTokenRelation deviceTokenRelation;
         try {
             deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(device.getShortAddress(), Integer.parseInt(String.valueOf(device.getEndpoint())));
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("status",device.getState());
 
-            //System.out.println(jsonObject.toString());
             DataMessageClient.publishData(deviceTokenRelation.getToken(), jsonObject.toString());
+
         }catch (Exception e){
-            System.out.println("数据表中无对应token"+e);
+            System.out.println("数据表中无对应token, 异常信息："+e);
         }
     }
 
@@ -1749,13 +1770,29 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         data.addProperty("version", version);
         try {
             DataMessageClient.publishAttribute(token, data.toString());
+
         }catch (Exception e){
-            System.err.println(e.getCause());
+            System.err.println(e.getMessage());
         }
     }
 
+
+    /**
+     * 设备数据上报处理 0x70
+     * @param shortAddress
+     * @param endPoint
+     * @param data
+     * @param deviceTokenRelationService
+     * @param sceneService
+     * @param sceneRelationService
+     * @param gatewayGroupService
+     * @throws Exception
+     */
     @Override
     public void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService, GatewayGroupService gatewayGroupService) throws Exception {
+
+        System.out.println("上传设备上报数据(0x70)...");
+
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
         try{
             String sceneId = data.get("sceneId").getAsString();
@@ -1771,7 +1808,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
             return;
 
         }catch (NullPointerException e){
-            //System.err.println(e.getMessage());
+            e.printStackTrace();
         }
 
         if(deviceTokenRelation!=null) {
@@ -1783,12 +1820,21 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         }
     }
 
-    public void rpc_callback(DeviceTokenRelation deviceTokenRelation, int requestId, JsonObject data) throws Exception{
+    public void rpc_callback(String shortAddress, int endPoint, DeviceTokenRelationService dtrs, int requestId, JsonObject data) throws Exception{
+
+        DeviceTokenRelation deviceTokenRelation = dtrs.getRelotionBySAAndEndPoint(shortAddress,endPoint);
 
         if (deviceTokenRelation == null ) {
             return;
         }
 
-        DataMessageClient.publishResponse(deviceTokenRelation.getToken(), requestId, data.toString());
+        String gatewayName = deviceTokenRelation.getGatewayName();
+        DeviceTokenRelation gatewayTokenRelation = dtrs.getGateway(gatewayName);
+
+        if (gatewayTokenRelation == null) {
+            return;
+        }
+
+        DataMessageClient.publishResponse(gatewayTokenRelation.getToken(), requestId, data.toString());
     }
 }

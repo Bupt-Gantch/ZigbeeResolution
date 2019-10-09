@@ -49,16 +49,8 @@ public interface GatewayMethod {
     //设置指定设备的开关状态
     void setDeviceState(Device device, byte state, String ip);
 
-<<<<<<< HEAD
     //设置指定设备的开关状态
     void setSoundLightAlarmState(Device device, byte state, String ip);
-=======
-  //设置指定设备的开关状态
-  void setSoundLightAlarmState(Device device, byte state, String ip);
-
-  //设置指定设备的开关状态
-  void setAlarmState(Device device, byte state, String ip, int time);
->>>>>>> devpeng
 
     //设置指定设备的开关状态
     void setAlarmState(Device device, byte state, String ip, int time);
@@ -110,11 +102,6 @@ public interface GatewayMethod {
 
     // 查询红外版本
     void IR_get_version(Device device, String ip);
-
-    // 查询红外版本回调
-//  void IR_get_version_CallBack(Device device, String ip, byte[] version,
-//                               DeviceTokenRelationService deviceTokenRelationService,
-//                               GatewayGroupService gatewayGroupService)throws Exception;
 
     // 红外设备匹配
     void IR_match(Device device, String ip, String version, int matchType);
@@ -230,13 +217,7 @@ public interface GatewayMethod {
 
     void setColorTemperature_CallBack();
 
-<<<<<<< HEAD
     void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService,  GatewayGroupService gatewayGroupService) throws Exception;
-=======
-  void getInfraredVersionCallBack(String token, String version );
 
-  void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService,  GatewayGroupService gatewayGroupService) throws Exception;
-
-  void rpc_callback(DeviceTokenRelation deviceTokenRelation, int requestId, JsonObject data)throws Exception;
->>>>>>> devpeng
+    void rpc_callback(String shortAddress, int endPoint, DeviceTokenRelationService dtrs, int requestId, JsonObject data)throws Exception;
 }
