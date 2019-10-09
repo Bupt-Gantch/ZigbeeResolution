@@ -3,6 +3,7 @@ package com.bupt.ZigbeeResolution.controller;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.InfraredService;
+import com.bupt.ZigbeeResolution.utils.Operation;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.unkrig.commons.nullanalysis.NotNull;
@@ -23,151 +24,151 @@ public class InfraredController {
     @Autowired
     private DeviceTokenRelationService deviceTokenRelationService;
 
-    @GetMapping("/customer/allLearn/{shortAddress}/{endPoint}/{customerId}")
-    public List<Learn> getCusAllLearns(@PathVariable("shortAddress") String shortAddress,
-                                       @PathVariable("endPoint") Integer endPoint,
-                                       @PathVariable("customerId") Integer customerId) {
-
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        List<Learn> learns = infraredService.getCustomerAllLearns(deviceTokenRelation.getUuid(), customerId);
-
-        return learns;
-    }
-
-
-    @GetMapping("/customer/panelLearn/{shortAddress}/{endPoint}/{customerId}/{panelId}")
-    public List<Learn> getCusPanelLearn(@PathVariable("shortAddress") String shortAddress,
-                                        @PathVariable("endPoint") Integer endPoint,
-                                        @PathVariable("customerId") Integer customerId,
-                                        @PathVariable("panelId") Integer panelId) {
-
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        List<Learn> keynames = infraredService.getCustomerPanelLearn(deviceTokenRelation.getUuid(), customerId, panelId);
-
-        return keynames;
-    }
-
-
-    @GetMapping("/device/allLearn/{shortAddress}/{endPoint}")
-    @ResponseBody
-    public List<Learn> getDeviceAllLearn(@PathVariable("shortAddress") String shortAddress,
-                                         @PathVariable("endPoint") Integer endPoint) {
-
-//        System.out.println("进入");
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        List<Learn> allLearns = infraredService.getDeviceAllLearns(deviceTokenRelation.getUuid());
-
-        return allLearns;
-    }
-
-    @GetMapping("/device/panelLearn/{shortAddress}/{endPoint}/{panelId}")
-    public List<Learn> getDevicePanelLearn(@PathVariable("shortAddress") String shortAddress,
-                                           @PathVariable("endPoint") Integer endPoint,
-                                           @PathVariable("panelId") Integer panelId) {
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        List<Learn> deviceLearns = infraredService.getDevicePanelLearn(deviceTokenRelation.getUuid(), panelId);
-
-        return deviceLearns;
-    }
-
-    @GetMapping("/device/getLearn/{shortAddress}/{endPoint}/{panelId}/{buttonId}")
-    public Learn getLearn(@PathVariable("shortAddress") String shortAddress,
-                            @PathVariable("endPoint") Integer endPoint,
-                            @PathVariable("panelId") Integer panelId,
-                            @PathVariable("buttonId") Integer buttonId) {
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        Learn learn= infraredService.get_a_learn(deviceTokenRelation.getUuid(), panelId, buttonId);
-
-        return learn;
-    }
-
-    @GetMapping("/device/delKey/{shortAddress}/{endPoint}/{key}")
-    public String delKey(@PathVariable("shortAddress") String shortAddress,
-                         @PathVariable("endPoint") Integer endPoint,
-                         @PathVariable("key") Integer key) {
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        infraredService.deleteKey(deviceTokenRelation.getUuid(), key);
-
-        return "success";
-    }
-
-    @GetMapping("/device/delAllKeys/{shortAddress}/{endPoint}")
-    public String delAllKeys(@PathVariable("shortAddress") String shortAddress,
-                             @PathVariable("endPoint") Integer endPoint) {
-//        System.out.println("进入");
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        infraredService.deleteAllKey(deviceTokenRelation.getUuid());
-
-        return "success";
-    }
-
-    @GetMapping("/device/delPane1/{shortAddress}/{endPoint}/{panelId}")
-    public String delPanel(@PathVariable("shortAddress") String shortAddress,
-                             @PathVariable("endPoint") Integer endPoint,
-                             @PathVariable("panelId") Integer panelId) {
-
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        infraredService.delPanel(deviceTokenRelation.getUuid(),panelId);
-
-        return "success";
-    }
-
-    @GetMapping("/device/delPane1s")
-    public String delPanels(@RequestParam("shortAddress") String shortAddress,
-                             @RequestParam("endPoint") Integer endPoint,
-                             @RequestParam("panelIds") List<Integer> panelIds) {
-//        System.out.println("进入");
-        DeviceTokenRelation deviceTokenRelation = null;
-        try {
-            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        infraredService.delPanels(deviceTokenRelation.getUuid(),panelIds);
-
-        return "success";
-    }
+//    @GetMapping("/customer/allLearn/{shortAddress}/{endPoint}/{customerId}")
+//    public List<Learn> getCusAllLearns(@PathVariable("shortAddress") String shortAddress,
+//                                       @PathVariable("endPoint") Integer endPoint,
+//                                       @PathVariable("customerId") Integer customerId) {
+//
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        List<Learn> learns = infraredService.getCustomerAllLearns(deviceTokenRelation.getUuid(), customerId);
+//
+//        return learns;
+//    }
+//
+//
+//    @GetMapping("/customer/panelLearn/{shortAddress}/{endPoint}/{customerId}/{panelId}")
+//    public List<Learn> getCusPanelLearn(@PathVariable("shortAddress") String shortAddress,
+//                                        @PathVariable("endPoint") Integer endPoint,
+//                                        @PathVariable("customerId") Integer customerId,
+//                                        @PathVariable("panelId") Integer panelId) {
+//
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        List<Learn> keynames = infraredService.getCustomerPanelLearn(deviceTokenRelation.getUuid(), customerId, panelId);
+//
+//        return keynames;
+//    }
+//
+//
+//    @GetMapping("/device/allLearn/{shortAddress}/{endPoint}")
+//    @ResponseBody
+//    public List<Learn> getDeviceAllLearn(@PathVariable("shortAddress") String shortAddress,
+//                                         @PathVariable("endPoint") Integer endPoint) {
+//
+////        System.out.println("进入");
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        List<Learn> allLearns = infraredService.getDeviceAllLearns(deviceTokenRelation.getUuid());
+//
+//        return allLearns;
+//    }
+//
+//    @GetMapping("/device/panelLearn/{shortAddress}/{endPoint}/{panelId}")
+//    public List<Learn> getDevicePanelLearn(@PathVariable("shortAddress") String shortAddress,
+//                                           @PathVariable("endPoint") Integer endPoint,
+//                                           @PathVariable("panelId") Integer panelId) {
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        List<Learn> deviceLearns = infraredService.getDevicePanelLearn(deviceTokenRelation.getUuid(), panelId);
+//
+//        return deviceLearns;
+//    }
+//
+//    @GetMapping("/device/getLearn/{shortAddress}/{endPoint}/{panelId}/{buttonId}")
+//    public Learn getLearn(@PathVariable("shortAddress") String shortAddress,
+//                            @PathVariable("endPoint") Integer endPoint,
+//                            @PathVariable("panelId") Integer panelId,
+//                            @PathVariable("buttonId") Integer buttonId) {
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        Learn learn= infraredService.get_a_learn(deviceTokenRelation.getUuid(), panelId, buttonId);
+//
+//        return learn;
+//    }
+//
+//    @GetMapping("/device/delKey/{shortAddress}/{endPoint}/{key}")
+//    public String delKey(@PathVariable("shortAddress") String shortAddress,
+//                         @PathVariable("endPoint") Integer endPoint,
+//                         @PathVariable("key") Integer key) {
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        infraredService.deleteKey(deviceTokenRelation.getUuid(), key);
+//
+//        return "success";
+//    }
+//
+//    @GetMapping("/device/delAllKeys/{shortAddress}/{endPoint}")
+//    public String delAllKeys(@PathVariable("shortAddress") String shortAddress,
+//                             @PathVariable("endPoint") Integer endPoint) {
+////        System.out.println("进入");
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        infraredService.deleteAllKey(deviceTokenRelation.getUuid());
+//
+//        return "success";
+//    }
+//
+//    @GetMapping("/device/delPane1/{shortAddress}/{endPoint}/{panelId}")
+//    public String delPanel(@PathVariable("shortAddress") String shortAddress,
+//                             @PathVariable("endPoint") Integer endPoint,
+//                             @PathVariable("panelId") Integer panelId) {
+//
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        infraredService.delPanel(deviceTokenRelation.getUuid(),panelId);
+//
+//        return "success";
+//    }
+//
+//    @GetMapping("/device/delPane1s")
+//    public String delPanels(@RequestParam("shortAddress") String shortAddress,
+//                             @RequestParam("endPoint") Integer endPoint,
+//                             @RequestParam("panelIds") List<Integer> panelIds) {
+////        System.out.println("进入");
+//        DeviceTokenRelation deviceTokenRelation = null;
+//        try {
+//            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        infraredService.delPanels(deviceTokenRelation.getUuid(),panelIds);
+//
+//        return "success";
+//    }
 
     //============================================================================
     //============================================================================
@@ -225,6 +226,7 @@ public class InfraredController {
         return res.toString();
     }
 
+    @Operation(name="新建遥控器面板")
     @PostMapping("/panel/add/{deviceId}")
     public String createPanel(@PathVariable("deviceId")String deviceId,
                               @RequestBody String data)  {
@@ -251,6 +253,7 @@ public class InfraredController {
         return res.toString();
     }
 
+    @Operation(name="删除遥控器面板")
     @DeleteMapping("/panel/del/{deviceId}/{panelId}")
     public String deletePanel(@PathVariable("deviceId")String deviceId,
                               @PathVariable("panelId") Integer panelId) {
@@ -277,6 +280,7 @@ public class InfraredController {
         return res.toString();
     }
 
+    @Operation(name="删除用户下所有遥控器")
     @DeleteMapping("/panels/del/{deviceId}")
     public String deletePanels(@PathVariable("deviceId")String deviceId) {
         JsonObject res = new JsonObject();
@@ -302,6 +306,7 @@ public class InfraredController {
         return res.toString();
     }
 
+    @Operation(name="修改遥控器面板名称")
     @PostMapping("/panel/upd/{panelId}")
     public String updatePanel(@PathVariable("panelId") Integer panelId,
                               @RequestBody String data){
@@ -426,6 +431,7 @@ public class InfraredController {
         return res.toString();
     }
 
+    @Operation(name="新增学习按键")
     @PostMapping("key/add/{panelId}")
     public String createKey(@PathVariable("panelId") Integer panelId,
                             @RequestBody String data){
@@ -458,6 +464,7 @@ public class InfraredController {
         return res.toString();
     }
 
+    @Operation(name="删除学习按键")
     @DeleteMapping("/key/del/{panelId}/{keyId}")
     public String deleteKey(@PathVariable("panelId") Integer panelId,
                             @PathVariable("keyId") Integer keyId){
@@ -491,6 +498,7 @@ public class InfraredController {
         return res.toString();
     }
 
+    @Operation(name="删除遥控器面板下所有学习按键")
     @DeleteMapping("/keys/del/{panelId}")
     public String deleteKeys(@PathVariable("panelId") Integer panelId) {
         JsonObject res = new JsonObject();

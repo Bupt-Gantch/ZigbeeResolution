@@ -293,6 +293,7 @@ public class SceneController{
         }
         return "success";
     }
+
 /*  @Operation(name="获取已绑定场景")
     @RequestMapping(value = "/getBindScene/{deviceId}", method = RequestMethod.POST)
     @ResponseBody
