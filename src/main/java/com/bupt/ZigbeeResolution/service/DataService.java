@@ -1,19 +1,16 @@
 package com.bupt.ZigbeeResolution.service;
 
 import com.bupt.ZigbeeResolution.common.Common;
+import com.bupt.ZigbeeResolution.common.RpcResult;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
-import com.bupt.ZigbeeResolution.mqtt.RpcMessageCallBack;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.xml.bind.util.JAXBSource;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -24,24 +21,12 @@ import java.util.List;
 public class DataService {
     private static List<Object> list = new LinkedList<Object>();
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
-
     private GatewayMethod gatewayMethod = new GatewayMethodImpl();
 
-<<<<<<< HEAD
-    public static void cleatList(){
-        list.clear();
-    }
-
-    @Autowired
-    private InfraredService infraredService;
-
-=======
     public static void cleatList() {
         list.clear();
     }
 
->>>>>>> devpeng
     Integer length;
     String shortAddress;
     int endPoint;
@@ -50,37 +35,30 @@ public class DataService {
     int taskNameLength;
 
     @Autowired
+    private RpcResult rpcResult;
+
+    @Autowired
     private InfraredService infraredService;
 
     Common instance = Common.getInstance();
 
-//    @Autowired
-//    private DeviceTokenRelationService deviceTokenRelationService;
 
     public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, GatewayGroupService gatewayGroupService, SceneRelationService sceneRelationService) throws Exception {
-<<<<<<< HEAD
-        //System.out.println("进入");
-        byte Response = bytes[0];
-        // 解析日志
-        AnalysisLog alog = new AnalysisLog();
-        alog.setGateway(gatewayName);
-        // 操作日志
-        OpLog olog = new OpLog();
-        switch (Response){
-            case 0x01: // 获取所有设备命令返回
-=======
 //        System.out.println("进入");
         System.out.println("R：" + SocketServer.bytesToHexString(bytes));
+
         byte Response = bytes[0];
         switch (Response) {
             case 0x01:
->>>>>>> devpeng
                 Device device = new Device();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 device.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
                 device.setEndpoint(bytes[4]);
                 device.setProfileId(byte2HexStr(Arrays.copyOfRange(bytes, 5, 7)));
                 device.setDeviceId(byte2HexStr(Arrays.copyOfRange(bytes, 7, 9)));
+                if ("0201".equals(device.getDeviceId())) {
+                    return;
+                }
                 device.setState(bytes[9] == 0x01);
                 Integer nameLength = Integer.parseInt(String.valueOf(bytes[10]));
                 if (nameLength == 0) {
@@ -96,24 +74,14 @@ public class DataService {
                 } else {
                     device.setSnid(bytesToAscii(Arrays.copyOfRange(bytes, 21 + nameLength, 21 + nameLength + snLength)));
                 }
-<<<<<<< HEAD
-                device.setZoneType( byte2HexStr(Arrays.copyOfRange(bytes, 21+nameLength+snLength, 23+nameLength+snLength)));
-                device.setElectric(Double.valueOf(String.valueOf(bytes[23+nameLength+snLength])));
-                device.setRecentState(Arrays.copyOfRange(bytes, length-4, length));
-                //System.out.println("完成解析");
-                alog.setService("device access");
-                alog.setRes_type((byte)0x01);
-                logger.info(alog.toString());
-=======
                 device.setZoneType(byte2HexStr(Arrays.copyOfRange(bytes, 21 + nameLength + snLength, 23 + nameLength + snLength)));
                 device.setElectric(Double.valueOf(String.valueOf(bytes[23 + nameLength + snLength])));
                 device.setRecentState(Arrays.copyOfRange(bytes, length - 4, length));
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.device_CallBack(device, gatewayName, deviceTokenRelationService, gatewayGroupService);
                 break;
 
-            case 0x15: // 获取网关信息返回
+            case 0x15:
                 Gateway gateway = new Gateway();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 gateway.setVersion(bytesToAscii(Arrays.copyOfRange(bytes, 2, 7)));
@@ -126,85 +94,48 @@ public class DataService {
                 gateway.setSceneNumber(Integer.parseInt(String.valueOf(bytes[54])));
                 gateway.setMissionNumber(Integer.parseInt(String.valueOf(bytes[55])));
                 gateway.setCompileVersionNumber(byte2HexStr(Arrays.copyOfRange(bytes, 61, 65)));
-<<<<<<< HEAD
-                //System.out.println("完成解析");\
-                alog.setService("gateway info");
-                alog.setRes_type((byte)0x15);
-                logger.info(alog.toString());
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.gateway_CallBack(gateway);
                 break;
 
-            case 0x07:  // 获取指定设备的开关状态返回
+            case 0x07:
                 Device stateDevice = new Device();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 stateDevice.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
                 stateDevice.setEndpoint(bytes[4]);
-<<<<<<< HEAD
-                stateDevice.setState(bytes[5]==0x01);
-                //System.out.println("完成解析");
-                alog.setService("get device state");
-                alog.setRes_type((byte)0x07);
-                logger.info(alog.toString());
-                gatewayMethod.deviceState_CallBack(stateDevice,deviceTokenRelationService);
-=======
                 stateDevice.setState(bytes[5] == 0x01);
 //                System.out.println("完成解析");
                 gatewayMethod.deviceState_CallBack(stateDevice, deviceTokenRelationService);
->>>>>>> devpeng
                 break;
 
-            case 0x08:  // 获取指定设备的亮度返回
+            case 0x08:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
                 endPoint = Integer.parseInt(String.valueOf(bytes[4]));
                 int bright = Integer.parseInt(String.valueOf(bytes[5]));
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-                alog.setService("get device brightness");
-                alog.setRes_type((byte)0x08);
-                logger.info(alog.toString());
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.deviceBright_CallBack(shortAddress, endPoint, bright);
                 break;
 
-            case 0x09:  // 获取指定设备的色调返回
+            case 0x09:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
                 endPoint = Integer.parseInt(String.valueOf(bytes[4]));
                 int hue = Integer.parseInt(String.valueOf(bytes[5]));
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-                alog.setService("get device hue");
-                alog.setRes_type((byte)0x09);
-                logger.info(alog.toString());
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.deviceBright_CallBack(shortAddress, endPoint, hue);
                 break;
 
-            case 0x0A: // 获取指定设备的饱和度返回
+            case 0x0A:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
                 endPoint = Integer.parseInt(String.valueOf(bytes[4]));
                 int saturation = Integer.parseInt(String.valueOf(bytes[5]));
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-                alog.setService("get device saturation");
-                alog.setRes_type((byte)0x0A);
-                logger.info(alog.toString());
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.deviceBright_CallBack(shortAddress, endPoint, saturation);
                 break;
 
-            case 0x0C: // 获取组返回
+            case 0x0C:
                 Group group = new Group();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 group.setGroupId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
@@ -214,18 +145,11 @@ public class DataService {
                 } else {
                     group.setGroupName(bytesToAscii(Arrays.copyOfRange(bytes, 5, 5 + groupNameLength)));
                 }
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-                alog.setService("group info");
-                alog.setRes_type((byte)0x0C);
-                logger.info(alog.toString());
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.group_CallBack(group);
                 break;
 
-            case 0x0B: // 添加指定设备到组返回
+            case 0x0B:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 String groupId = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
                 int memberLength = Integer.parseInt(String.valueOf(bytes[4]));
@@ -235,37 +159,23 @@ public class DataService {
                     shortAddresses[i] = byte2HexStr(Arrays.copyOfRange(bytes, 5 + 3 * i, 7 + 3 * i));
                     endPoints[i] = Integer.parseInt(String.valueOf(bytes[7 + 3 * i]));
                 }
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-                alog.setService("add device to group");
-                alog.setRes_type((byte)0x0B);
-                logger.info(alog.toString());
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.groupMember_CallBack(groupId, shortAddresses, endPoints);
                 break;
 
-            case 0x0D: // 添加场景返回
+            case 0x0D:
                 Scene scene = new Scene();
                 scene.setSceneId(byte2HexStr(new byte[]{bytes[2], bytes[3]}));
                 int nameLen = (int) bytes[4];
                 byte[] nameByte = new byte[nameLen];
                 System.arraycopy(bytes, 5, nameByte, 0, nameLen);
                 scene.setSceneName(bytesToAscii(nameByte));
-                //System.out.println("完成解析");
+                System.out.println("完成解析");
                 // 添加场景,修改场景名的返回值一样
-<<<<<<< HEAD
-                alog.setService("add scene");
-                alog.setRes_type((byte)0x0D);
-                logger.info(alog.toString());
-                gatewayMethod.addScene_CallBack(scene,sceneService);
-=======
                 gatewayMethod.addScene_CallBack(scene, sceneService);
->>>>>>> devpeng
                 break;
 
-            case 0x0E: // 获取场景返回
+            case 0x0E:
                 scene = new Scene();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 scene.setSceneId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
@@ -275,20 +185,12 @@ public class DataService {
                 } else {
                     scene.setSceneName(bytesToAscii(Arrays.copyOfRange(bytes, 5, 5 + sceneNameLength)));
                 }
-<<<<<<< HEAD
-                scene.setSceneNumber(Integer.parseInt(String.valueOf(bytes[5+sceneNameLength])));
-                //System.out.println("完成解析");
-                alog.setService("scene overview");
-                alog.setRes_type((byte)0x0E);
-                logger.info(alog.toString());
-=======
                 scene.setSceneNumber(Integer.parseInt(String.valueOf(bytes[5 + sceneNameLength])));
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.scene_CallBack(scene);
                 break;
 
-            case 0x20:  // 获取场景详细成员信息返回
+            case 0x20:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 String sceneId = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
                 int deviceCount = Integer.parseInt(String.valueOf(bytes[4]));
@@ -315,18 +217,11 @@ public class DataService {
                     delay[i] = Integer.parseInt(String.valueOf(bytes[15 + 12 * i]));
                 }
 
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-                alog.setService("scene detail");
-                alog.setRes_type((byte)0x20);
-                logger.info(alog.toString());
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.sceneDetail_CallBack(sceneId, shortAddresses, endPoints, deviceId, data1, data2, data3, data4, IRId, delay);
                 break;
 
-            case 0x21: // 删除场景中指定成员返回
+            case 0x21:
                 Scene deleteScene = new Scene();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 deleteScene.setSceneId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
@@ -336,18 +231,11 @@ public class DataService {
                 } else {
                     deleteScene.setSceneName(bytesToAscii(Arrays.copyOfRange(bytes, 5, 5 + deleteSceneNameLength)));
                 }
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-                alog.setService("delete device from scene");
-                alog.setRes_type((byte)0x21);
-                logger.info(alog.toString());
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.scene_CallBack(deleteScene);
                 break;
 
-            case 0x11:  // 获取定时任务返回
+            case 0x11:
                 TimerTask timerTask = new TimerTask();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 timerTask.setTaskId(Integer.parseInt(String.valueOf(bytes[2])));
@@ -361,16 +249,6 @@ public class DataService {
                 timerTask.setTaskMode(bytes[11]);
                 timerTask.setData1(bytes[12]);
                 timerTask.setData2(bytes[13]);
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-                alog.setService("timing task detail");
-                alog.setRes_type((byte)0x11);
-                logger.info(alog.toString());
-                gatewayMethod.timerTask_CallBack(timerTask);
-                break;
-
-            case 0x24:  // 查看指定任务详情返回
-=======
 //                System.out.println("完成解析");
                 gatewayMethod.timerTask_CallBack(timerTask);
                 break;
@@ -391,19 +269,13 @@ public class DataService {
                 break;
 
             case 0x24:
->>>>>>> devpeng
                 TaskTimerDetail taskTimerDetail = new TaskTimerDetail();
                 TaskSceneDetail taskSceneDetail = new TaskSceneDetail();
                 TaskDeviceDetail taskDeviceDetail = new TaskDeviceDetail();
                 String taskSceneId;
                 length = Integer.parseInt(String.valueOf(bytes[1]));
 
-<<<<<<< HEAD
-                alog.setRes_type((byte)0x24);
-                switch (bytes[3]){
-=======
                 switch (bytes[3]) {
->>>>>>> devpeng
                     case 0x01:
                         taskTimerDetail.setTaskType(bytes[2]);
                         taskTimerDetail.setDay(Integer.parseInt(String.valueOf(bytes[4])));
@@ -421,16 +293,9 @@ public class DataService {
                         }
                         taskTimerDetail.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 50 + taskNameLength, 52 + taskNameLength)));
 
-<<<<<<< HEAD
-                        //System.out.println("完成解析");
-                        alog.setService("timing task detail");
-                        logger.info(alog.toString());
-=======
 //                        System.out.println("完成解析");
->>>>>>> devpeng
                         gatewayMethod.taskTimerDetail_CallBack(taskTimerDetail, taskSceneId);
                         break;
-
                     case 0x02:
                         taskSceneDetail.setTaskType(bytes[2]);
                         taskSceneDetail.setSceneId(byte2HexStr(Arrays.copyOfRange(bytes, 4, 6)));
@@ -445,16 +310,9 @@ public class DataService {
                         }
                         taskSceneDetail.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 50 + taskNameLength, 52 + taskNameLength)));
 
-<<<<<<< HEAD
-                        //System.out.println("完成解析");
-                        alog.setService("scene task detail");
-                        logger.info(alog.toString());
-=======
 //                        System.out.println("完成解析");
->>>>>>> devpeng
                         gatewayMethod.taskSceneDetail_CallBack(taskSceneDetail, taskSceneId);
                         break;
-
                     case 0x03:
                         taskDeviceDetail.setTaskType(bytes[2]);
                         taskDeviceDetail.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 4, 6)));
@@ -477,140 +335,62 @@ public class DataService {
                         }
                         taskDeviceDetail.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 50 + taskNameLength, 52 + taskNameLength)));
 
-<<<<<<< HEAD
-                        //System.out.println("完成解析");
-                        alog.setService("device task detail");
-                        logger.info(alog.toString());
-=======
 //                        System.out.println("完成解析");
->>>>>>> devpeng
                         gatewayMethod.taskDeviceDetail_CallBack(taskDeviceDetail, taskSceneId);
                         break;
                 }
                 break;
 
-<<<<<<< HEAD
-            case 0x25:  // 获取所有的任务返回
-                Task task = new Task();
-                length = Integer.parseInt(String.valueOf(bytes[1]));
-                task.setTaskType(bytes[2]);
-                task.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 3, 5)));
-                taskNameLength = Integer.parseInt(String.valueOf(bytes[5]));
-                if(taskNameLength==0){
-                    task.setTaskName("");
-                }else {
-                    task.setTaskName(bytesToAscii(Arrays.copyOfRange(bytes, 6, 6+taskNameLength)));
-                }
-                //System.out.println("完成解析");
-                alog.setService("tasks overview");
-                alog.setRes_type((byte)0x25);
-                logger.info(alog.toString());
-                gatewayMethod.task_CallBack(task);
-                break;
+//            case (byte) 0x26:  // 红外宝
+//                int index = 1;
+//                int total_length = bytes[index++] & 0xff; // 总长度
+//                shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, index, index + 2));
+//                index += 2;
+//                endPoint = bytes[index++];
+//
+//                switch (bytes[index++]) {
+//                    case 0x02:  // 学习
+//                        break;
+//                    case 0x03: // 透传
+//                        System.out.print("infrared");
+//                        break;
+//                    case 0x04: // 保存数据到网关
+//                        break;
+//                    case 0x05: // 查询网关保存的红外数据
+//                        break;
+//                    case 0x06: // 发送网关保存的红外数据
+//                        break;
+//                    case 0x07: // 删除网关保存的红外数据
+//                        break;
+//                    case 0x09: // 缓存透传指令
+//                        break;
+//                    case 0x0a: // 查询缓存条目数量
+//                        break;
+//                    default:
+//                        break;
+//                }
+//                break;
 
-            case 0x26:  // 红外宝返回
-=======
-            case (byte) 0x26:  // 红外宝
->>>>>>> devpeng
-                int index = 1;
-                int total_length = bytes[index++] & 0xff; // 总长度
-                shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, index, index + 2));
-                index += 2;
-                endPoint = bytes[index++];
-<<<<<<< HEAD
-                alog.setRes_type((byte)0x26);
-                switch(bytes[index++]){
-=======
-
-                switch (bytes[index++]) {
->>>>>>> devpeng
-                    case 0x02:  // 学习
-                        alog.setService("infrared learn");
-                        break;
-
-                    case 0x03: // 透传
-                        alog.setService("infrared control");
-                        break;
-
-                    case 0x04: // 保存数据到网关
-                        alog.setService("infrared save data to gateway");
-                        break;
-
-                    case 0x05: // 查询网关保存的红外数据
-                        alog.setService("infrared get data in gateway");
-                        break;
-
-                    case 0x06: // 发送网关保存的红外数据
-                        alog.setService("infrared send data in gateway");
-                        break;
-
-                    case 0x07: // 删除网关保存的红外数据
-                        alog.setService("infrared delete data in gateway");
-                        break;
-
-                    case 0x09: // 缓存透传指令
-                        alog.setService("infrared save instruction to cache");
-                        break;
-
-                    case 0x0a: // 查询缓存条目数量
-                        alog.setService("infrared count cache");
-                        break;
-
-                    default:
-                        alog.setService("infrared unknown");
-                        break;
-<<<<<<< HEAD
-=======
-                    default:
-                        break;
->>>>>>> devpeng
-                }
-                logger.info(alog.toString());
-                break;
-
-            case 0x27: //
+            case 0x27:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
                 endPoint = Integer.parseInt(String.valueOf(bytes[4]));
                 int colourTemp = (int) ((bytes[5] & 0xFF) | ((bytes[6] & 0xFF) << 8));
 
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.deviceColourTemp_CallBack(shortAddress, endPoint, colourTemp);
                 break;
 
 
             case 0x29:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
-<<<<<<< HEAD
-                alog.setRes_type((byte)0x29);
-                switch(bytes[2]){
-                    case 0x03: // 更改设备名返回值
-=======
                 switch (bytes[2]) {
                     // 更改设备名返回值
                     case 0x03:
->>>>>>> devpeng
                         shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 4, 6));
                         endPoint = Integer.parseInt(String.valueOf(bytes[6]));
                         String name = bytesToAscii(bytes, 8, Integer.parseInt(String.valueOf(bytes[7])));
 
-<<<<<<< HEAD
-                        //System.out.println("完成解析");
-                        alog.setService("change device`s name");
-                        logger.info(alog.toString());
-                        gatewayMethod.changeDeviceName_CallBack(shortAddress, endPoint, name);
-                        break;
-
-                    case 0x04: // 修改设备属性返回
-//                        if (bytes[2] == (byte)0xa7){
-//                            System.out.println("查询网关内保存的红外数据返回");
-//                        }
-                        switch(bytes[3]){
-=======
                         gatewayMethod.changeDeviceName_CallBack(shortAddress, endPoint, name);
                         break;
 
@@ -619,29 +399,22 @@ public class DataService {
                             System.out.println("查询网关内保存的红外数据返回");
                         }
                         switch (bytes[3]) {
->>>>>>> devpeng
                             case (byte) 0x95:
-                                alog.setService("delete device");
                                 gatewayMethod.deleteDevice_CallBack();
                                 break;
                             case (byte) 0x82:
-                                alog.setService("set device state");
                                 gatewayMethod.setDeviceState_CallBack();
                                 break;
                             case (byte) 0x83:
-                                alog.setService("set device brightness");
                                 gatewayMethod.setDeviceLevel_CallBack();
                                 break;
                             case (byte) 0x84:
-                                alog.setService("set device color");
                                 gatewayMethod.setDeviceHueAndSat_CallBack();
                                 break;
                             case (byte) 0x92:
-                                alog.setService("call scene");
                                 gatewayMethod.callScene_CallBack();
                                 break;
                             case (byte) 0x9E:
-                                alog.setService("set report time");
                                 gatewayMethod.setReportTime_CallBack();
                                 break;
                             case (byte) 0xA7:
@@ -655,14 +428,9 @@ public class DataService {
                             case (byte) 0x89:
                                 gatewayMethod.setSwitchBindDevice_CallBack();
                         }
-                        
                         break;
 
-<<<<<<< HEAD
-                    case (byte)0x93:  // 获取设备信息返回
-=======
                     case (byte) 0x93:
->>>>>>> devpeng
                         device = new Device();
                         device.setShortAddress(byte2HexStr(new byte[]{bytes[5], bytes[6]}));
                         device.setEndpoint(bytes[7]);
@@ -674,24 +442,13 @@ public class DataService {
                 }
                 break;
 
-<<<<<<< HEAD
-            case (byte)0x31:  // 获取绑定记录返回
-=======
             case (byte) 0x31:
->>>>>>> devpeng
                 length = Integer.parseInt(String.valueOf(bytes[2]));
                 byte recordId = bytes[3];
                 byte[] sourceAddress = Arrays.copyOfRange(bytes, 4, 5);
                 byte sourceEndPoint = bytes[6];
-<<<<<<< HEAD
-                alog.setRes_type((byte) 0x31);
-                switch(bytes[7]){
-=======
                 switch (bytes[7]) {
->>>>>>> devpeng
                     case (byte) 0x01:
-                        alog.setService("get bind scene records");
-                        logger.info(alog.toString());
                         System.out.print("场景 => ");
                         byte scene_id = bytes[9];
                         System.out.print("长度: " + length +
@@ -702,8 +459,6 @@ public class DataService {
                         );
                         break;
                     case (byte) 0x02:
-                        alog.setService("get bind device records");
-                        logger.info(alog.toString());
                         System.out.print("设备 => ");
                         Integer deviceNum = (int) bytes[9];
                         System.out.print("长度: " + length +
@@ -721,11 +476,7 @@ public class DataService {
                 break;
 
 
-<<<<<<< HEAD
-            case (byte)0xAF: // 组改名返回
-=======
             case (byte) 0xAF:
->>>>>>> devpeng
                 Group newGroupName = new Group();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 newGroupName.setGroupId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
@@ -735,11 +486,7 @@ public class DataService {
                 } else {
                     newGroupName.setGroupName(bytesToAscii(Arrays.copyOfRange(bytes, 5, 5 + newGroupNameLength)));
                 }
-<<<<<<< HEAD
-                //System.out.println("完成解析");
-=======
 //                System.out.println("完成解析");
->>>>>>> devpeng
                 gatewayMethod.setGroupName_CallBack(newGroupName);
                 break;
 
@@ -754,8 +501,6 @@ public class DataService {
                 Double onlineStatus;
                 JsonObject data = new JsonObject();
                 String sceneSelectorUseSceneId;
-                int deviceType = 5;  // 红外设备类型,初始化为自定义类型
-                int key = -1; // 功能按键编号（0—602预设）
 
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 String shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
@@ -763,63 +508,37 @@ public class DataService {
                 Integer requestId = instance.getRequestId(shortAddress+String.valueOf(endPoint));
 
                 String clusterId = byte2HexStr(Arrays.copyOfRange(bytes, 5, 7));
-<<<<<<< HEAD
-
-                alog.setRes_type((byte)0x70);
-                switch(clusterId){
-                    case "0000":  // infrared
-=======
                 System.out.println("shortAddress:" + shortAddress + "  endPoint:" + endPoint + "  clusterId:" + clusterId);
                 switch (clusterId) {
                     case "0000":  // infrared 完善红外宝功能
->>>>>>> devpeng
                         int seq = (int) bytes[7]; //报告个数
                         int learnKey = -1;
                         int low = 0;
                         int high = 0;
                         String attribute = byte2HexStr(Arrays.copyOfRange(bytes, 8, 10)); // 0A 40
-                        JsonObject json = new JsonObject();
-<<<<<<< HEAD
-                        json.addProperty("shortAddress", shortAddress);
-                        json.addProperty("endPoint", endPoint);
+                        JsonObject resJson = new JsonObject();
                         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+//                        DeviceTokenRelation parentDevicceTokenRelation = deviceTokenRelationService.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress,endPoint);
                         switch (bytes[21]) {
                             case (byte) 0x81:  // 匹配
-                                json.addProperty("matchRes", (int) bytes[24]);
-                                json.addProperty("命令类型", "匹配");
-                                if ((int) bytes[24] == 0) {
-                                    System.out.println("匹配成功");
-                                } else {
-                                    System.out.println("匹配失败");
-=======
-                        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-                        DeviceTokenRelation parentDevicceTokenRelation = deviceTokenRelationService.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress,endPoint);
-                        switch (bytes[21]) {
-                            case (byte) 0x81:  // 匹配
-                                json.addProperty("match", (int) bytes[24]);
+                                rpcResult.setResult(requestId, (int) bytes[24]);
+                                resJson.addProperty("match", (int) bytes[24]);
                                 data.addProperty("match", (int) bytes[24]);
                                 if ((int) bytes[24] == 0) {
                                     System.out.println("********************* 匹配成功 *********************");
                                 } else {
                                     System.out.println("********************* 匹配失败 *********************");
->>>>>>> devpeng
                                 }
                                 break;
                             case (byte) 0x82:  // 控制
                                 low = bytes[24];
                                 high = bytes[25] << 8;
                                 learnKey = low + high;
-<<<<<<< HEAD
-                                json.addProperty("learnKey", learnKey);
-                                json.addProperty("命令类型", "控制");
-                                System.out.println("控制命令：learnKey=" + learnKey);
-=======
-                                json.addProperty("control", 0);
-                                json.addProperty("key",learnKey);
+                                resJson.addProperty("control", 0);
+                                resJson.addProperty("key",learnKey);
                                 data.addProperty("control", 0);
                                 data.addProperty("key",learnKey);
                                 System.out.println("********************* 控制命令：按键功能编号 = " + learnKey+ " *********************");
->>>>>>> devpeng
                                 break;
                             case (byte) 0x83:  // 学习
                                 int matchType = bytes[23];
@@ -827,32 +546,16 @@ public class DataService {
                                 high = bytes[25] << 8;
                                 learnKey = low + high;//两字节16进制值转换为int
                                 int learnResult = bytes[26];
-<<<<<<< HEAD
-                                json.addProperty("matchType", matchType);
-                                json.addProperty("learnKey", learnKey);
-                                json.addProperty("learnRes", bytes[26]);
-                                json.addProperty("命令类型", "学习");
-
-                                //保存红外宝学习码
-                                if (learnResult == 0) {  //
-                                    System.out.println("学习成功");
-                                    infraredService.updateState(deviceTokenRelation.getUuid(), learnKey); //修改学习码状态为成功
-//                                    infraredService.updateState("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey); //本地测试
-                                } else if (learnResult == 1) {
-                                    System.out.println("学习失败");
-                                    infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除失败的学习码
-//                                      infraredService.deleteKey("5e88cc40-9806-11e9-9dcf-b55ae51a103e",learnKey);//本地测试
-                                } else {
-                                    System.out.println("存储器空间已满");
-=======
-                                json.addProperty("type", matchType);
-                                json.addProperty("key", learnKey);
-                                json.addProperty("learn", learnResult);
+                                resJson.addProperty("type", matchType);
+                                resJson.addProperty("key", learnKey);
+                                resJson.addProperty("learn", learnResult);
                                 data.addProperty("learn", learnResult);
                                 data.addProperty("key", learnKey);
 
+                                rpcResult.setResult(requestId, learnResult);
+
                                 //保存红外宝学习码
-                                if (learnResult == 0) {  //
+                                if (learnResult == 0) {
                                     System.out.println("********************* 学习成功 *********************");
 //                                    infraredService.updateState(deviceTokenRelation.getUuid(), learnKey); //修改学习码状态为成功
                                 } else if (learnResult == 1) {
@@ -860,7 +563,6 @@ public class DataService {
                                     infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除失败的学习码
                                 } else {
                                     System.out.println("********************* 存储器空间已满 *********************");
->>>>>>> devpeng
                                     infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey);
                                 }
                                 break;
@@ -868,72 +570,39 @@ public class DataService {
                                 int AC_key = (int) bytes[23] + bytes[24] << 8;
                                 int TV_key = (int) bytes[25] + bytes[26] << 8;
                                 int STB_key = (int) bytes[27] + bytes[28] << 8;
-                                json.addProperty("AC_key", AC_key);
-                                json.addProperty("TV_key", TV_key);
-                                json.addProperty("STB_key", STB_key);
-                                json.addProperty("AC", bytes[29] == 0xAA);
-                                json.addProperty("TV", bytes[30] == 0xAA);
-                                json.addProperty("STB", bytes[31] == 0xAA);
-<<<<<<< HEAD
-                                json.addProperty("命令类型", "查询");
-=======
+                                resJson.addProperty("AC_key", AC_key);
+                                resJson.addProperty("TV_key", TV_key);
+                                resJson.addProperty("STB_key", STB_key);
+                                resJson.addProperty("AC", bytes[29] == 0xAA);
+                                resJson.addProperty("TV", bytes[30] == 0xAA);
+                                resJson.addProperty("STB", bytes[31] == 0xAA);
                                 data.addProperty("AC_key", AC_key);
                                 data.addProperty("TV_key", TV_key);
                                 data.addProperty("STB_key", STB_key);
                                 data.addProperty("AC", bytes[29] == 0xAA);
                                 data.addProperty("TV", bytes[30] == 0xAA);
                                 data.addProperty("STB", bytes[31] == 0xAA);
-                                System.out.println("********************* 查询当前设备参数 ==>" + json.toString());
->>>>>>> devpeng
+                                System.out.println("********************* 查询当前设备参数 ==>" + resJson.toString());
                                 break;
                             case (byte) 0x85:  // 删除该红外设备某个已学习的键
                                 matchType = bytes[23];
                                 low = bytes[24];
                                 high = bytes[25] << 8;
                                 learnKey = low + high;
-<<<<<<< HEAD
-                                json.addProperty("matchType", matchType);
-                                json.addProperty("learnKey", learnKey);
-                                json.addProperty("命令类型", "删除键");
-                                infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除
-                                System.out.println("删除学习键 " + learnKey+" 成功");
-                                break;
-                            case (byte) 0x86:  // 删除该红外设备全部已学习数据
-                                json.addProperty("命令类型", "删除全部");
-                                infraredService.deleteAllKey(deviceTokenRelation.getUuid());//删除全部
-                                System.out.println("删除该红外设备全部数据成功");
-                                break;
-                            case (byte) 0x8A:
-                                //json.addProperty("exitRes", 0);
-                                json.addProperty("命令类型", "退出");
-                                System.out.println("退出匹配或学习状态成功");
-                                break;
-                            default://0x80 读取版本号
-                                String version = byte2HexStr(Arrays.copyOfRange(bytes, 15, 21));
-                                System.out.println("IR version : " + version);
-                                json.addProperty("version", version);
-                                json.addProperty("命令类型", "读取版本号");
-                                System.out.println("读取版本号成功");
-                                break;
-                        }
-
-                        System.out.println("shortAddress : " + shortAddress + " ,endpoint : " + endPoint + " , deviceToken : " + deviceTokenRelation.getToken() + " , msg : " + json.toString());
-                        DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), json.toString());
-=======
-                                json.addProperty("delete", 0);
-                                json.addProperty("key", learnKey);
+                                resJson.addProperty("delete", 0);
+                                resJson.addProperty("key", learnKey);
                                 data.addProperty("delete", 0);
                                 infraredService.deleteKey(deviceTokenRelation.getUuid(), learnKey); //删除
                                 System.out.println("********************* 删除学习键 " + learnKey+ " 成功 *********************");
                                 break;
                             case (byte) 0x86:  // 删除该红外设备全部已学习数据
-                                json.addProperty("deleteAll", 0);
+                                resJson.addProperty("deleteAll", 0);
                                 data.addProperty("deleteAll", 0);
                                 infraredService.deleteAllKey(deviceTokenRelation.getUuid());//删除全部
                                 System.out.println("********************* 删除该红外设备全部数据成功 *********************");
                                 break;
                             case (byte) 0x8A:
-                                json.addProperty("exit", 0);
+                                resJson.addProperty("exit", 0);
 //                                json.addProperty("命令类型", "退出");
                                 data.addProperty("exit", 0);
                                 System.out.println("********************* 退出匹配或学习状态成功 *********************");
@@ -954,13 +623,12 @@ public class DataService {
                         // 发送数据到平台
                         try {
                             // rpc 调用返回
-                            if (json != null) {
-                                gatewayMethod.rpc_callback(parentDevicceTokenRelation, requestId, json);
+                            if (resJson != null) {
+                                gatewayMethod.rpc_callback(shortAddress, endPoint, deviceTokenRelationService, requestId, resJson);
                             }
                         } catch (Exception e) {
                             System.err.println(e.getMessage());
                         }
->>>>>>> devpeng
                         break;
 
                     case "0204":  // 温度传感器上报数据
@@ -1038,13 +706,8 @@ public class DataService {
                                     } else {
                                         data.addProperty("alarm", 0D);
                                     }
-<<<<<<< HEAD
-                                    for (int j = 2; j < 8; j++){  // 暂时只考虑低位字节，高位字节全0不考虑
-                                        data.addProperty(attribute_array[j], (double) attribute_value[j]);
-=======
                                     for (int j = 2; j < 8; j++) {  // 暂时只考虑低位字节，高位字节全0不考虑
                                         data.addProperty(attribute_array[j], (double) attribute_value[j]);//
->>>>>>> devpeng
                                     }
 //                                    if (alarm== 1 || alarm == 21) {   // 人体红外报警、水浸
 //                                        data.addProperty("alarm", 1D);
@@ -1236,13 +899,9 @@ public class DataService {
                 gatewayMethod.data_CallBack(shortAddress, endPoint, data, deviceTokenRelationService, sceneService, sceneRelationService, gatewayGroupService);
                 break;
         }
-<<<<<<< HEAD
-        //System.out.println("完成");
-=======
 
         instance.removeRequestId(shortAddress+endPoint);
         System.out.println("完成解析");
->>>>>>> devpeng
     }
 
     /**
@@ -1449,26 +1108,21 @@ public class DataService {
         return all_byte;
     }
 
-<<<<<<< HEAD
-    public JsonObject getItem(String s){
-        int length = s.length();
-=======
     public JsonObject getItem(String s) {
->>>>>>> devpeng
         if (s.length() <= 0)
             return null;
         JsonObject item = new JsonObject();
 
         int i = 0;
         String tmp = "";
-        while (i <= length - 1 && s.charAt(i) != ' ') {
+        while (i <= s.length() - 1 || s.charAt(i) != ' ') {
             tmp += s.charAt(i);
             i++;
         }
         i++; // skip 0x20
         item.addProperty("name", tmp);
         tmp = "";
-        while (i <= length - 1) {
+        while (i <= s.length() - 1) {
             tmp += s.charAt(i);
             i++;
         }
