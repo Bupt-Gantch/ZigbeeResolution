@@ -1,6 +1,5 @@
 package com.bupt.ZigbeeResolution.service;
 
-import java.util.List;
 
 import com.bupt.ZigbeeResolution.data.LoggingEvent;
 /**
@@ -9,7 +8,7 @@ import com.bupt.ZigbeeResolution.data.LoggingEvent;
  */
 public interface ILoggingEventService {
 
-    public boolean insertLog(LoggingEvent loggingEvent);
+    boolean insertLog(LoggingEvent loggingEvent);
 
 }
 
