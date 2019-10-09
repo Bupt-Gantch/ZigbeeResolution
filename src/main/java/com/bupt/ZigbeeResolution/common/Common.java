@@ -1,5 +1,7 @@
 package com.bupt.ZigbeeResolution.common;
 
+import lombok.Synchronized;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,10 +27,12 @@ public class Common {
         return rpcRequest.get(key);
     }
 
+    @Synchronized
     public void putRequestId(String key, Integer requestId){
         rpcRequest.putIfAbsent(key, requestId);
     }
 
+    @Synchronized
     public void removeRequestId(String key){
         rpcRequest.remove(key);
     }
