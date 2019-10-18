@@ -50,8 +50,8 @@ public class DeviceController {
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(singleDeviceTokenRelation.getGatewayName());
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
         if(gatewayGroup == null || gatewayGroup.getIp()==null){
-            logger.warn("Gateway %s is offline", singleDeviceTokenRelation.getGatewayName());
-            return "error";
+            logger.warn("Gateway " + singleDeviceTokenRelation.getGatewayName() + " is offline");
+//            return "error";
         }
 
         Device device = new Device();
@@ -65,6 +65,9 @@ public class DeviceController {
         // 删除场景
         List<DeviceTokenRelation> allDevices = deviceTokenRelationService.getRelationByIEEE(singleDeviceTokenRelation.getIEEE());
         for(DeviceTokenRelation eachDevice: allDevices){
+            if(sceneSelectorRelationService.getBindInfoByDeviceId(eachDevice.getUuid()).size() == 0 ){
+                continue;
+            }
             if(sceneSelectorRelationService.deleteBindInfoByDeviceId(eachDevice.getUuid())){
                 logger.error("database operation exception: fail to delete record in senceSelectorRelation");
                 return "error";
@@ -72,7 +75,7 @@ public class DeviceController {
         }
 
         // 删除设备token
-        if(deviceTokenRelationService.deleteDeviceByIEEE(singleDeviceTokenRelation.getIEEE())){
+        if(!deviceTokenRelationService.deleteDeviceByIEEE(singleDeviceTokenRelation.getIEEE())){
             logger.error("database operation exception: fail to delete record in deviceTokenRelation");
             return "error";
         }
@@ -91,8 +94,8 @@ public class DeviceController {
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayNumber);
 
         if(gatewayGroup.getIp()==null){
-            logger.warn("Gateway %s is offline", gatewayName);
-            return "error";
+            logger.warn("Gateway " + gatewayName + " is offline");
+//            return "error";
         }
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
         gatewayMethod.permitDeviceJoinTheGateway(gatewayGroup.getIp());
@@ -130,8 +133,8 @@ public class DeviceController {
 
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(sceneSelectorTokenRelation.getGatewayName());
         if(gatewayGroup.getIp()==null){
-            logger.warn("Gateway %s is offline", sceneSelectorTokenRelation.getGatewayName());
-            return "error";
+            logger.warn("Gateway "+ sceneSelectorTokenRelation.getGatewayName() +" is offline");
+//            return "error";
         }
 
         Device sceneSelector = new Device();
@@ -208,8 +211,8 @@ public class DeviceController {
 
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(sceneSelectorTokenRelation.getGatewayName());
         if(gatewayGroup.getIp()==null){
-            logger.warn("Gateway %s is offline", sceneSelectorTokenRelation.getGatewayName());
-            return "error";
+            logger.warn("Gateway "+sceneSelectorTokenRelation.getGatewayName()+" is offline");
+//            return "error";
         }
 
         Device sceneSelector = new Device();
