@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
+@Operation(name="红外宝")
 @RestController
 @RequestMapping("api/v1/infrared")
 public class InfraredController {
