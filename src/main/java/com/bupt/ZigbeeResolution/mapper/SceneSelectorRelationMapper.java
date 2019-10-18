@@ -25,6 +25,9 @@ public interface SceneSelectorRelationMapper {
     @Select("SELECT bindType FROM sceneSelectorRelation WHERE sceneSelectorId = #{sceneSelectorId} GROUP BY bindType")
     Integer getBindTypeBySceneSelectorId(@Param("sceneSelectorId") String sceneSelectorId);
 
+    @Select("SELECT * FROM sceneSelectorRelation WHERE deviceId = #{deviceId}")
+    List<SceneSelectorRelation> getBindInfoByDeviceId(@Param("deviceId")String deviceId);
+
     @Delete("DELETE FROM sceneSelectorRelation WHERE sceneSelectorId = #{sceneSelectorId} AND deviceId = #{deviceId}")
     Integer deleteBindInfo(@Param("sceneSelectorId") String sceneSelectorId, @Param("deviceId") String deviceId);
 
