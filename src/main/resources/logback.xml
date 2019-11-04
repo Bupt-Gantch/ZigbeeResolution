@@ -143,13 +143,13 @@ xsi:noNamespaceSchemaLocation="http://www.padual.com/java/logback.xsd">
     </appender> 
     
     <!--&lt;!&ndash; 指定线程包路径下的日志输出存储到数据库 &ndash;&gt;-->
-    <logger name="com.bupt.ZigbeeResolution.controller" level="info" addtivity="false">
+    <logger name="com.bupt.ZigbeeResolution.controller" level="warn" addtivity="false">
         <appender-ref ref="PROJECT-TASK"/>
     </logger>
 
     <!-- 控制台打印sql -->
-    <logger name="com.bupt.ZigbeeResolution.mapper" level="debug">
-         <appender-ref ref="DEBUG" />
+    <logger name="com.bupt.ZigbeeResolution.mapper" level="error">
+         <appender-ref ref="ERROR" />
     </logger>
     
 
