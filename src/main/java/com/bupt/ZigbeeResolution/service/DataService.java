@@ -1,7 +1,7 @@
 package com.bupt.ZigbeeResolution.service;
 
 import com.bupt.ZigbeeResolution.common.Common;
-import com.bupt.ZigbeeResolution.common.RpcResult;
+//import com.bupt.ZigbeeResolution.common.RpcResult;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
@@ -34,8 +34,8 @@ public class DataService {
     int[] endPoints;
     int taskNameLength;
 
-    @Autowired
-    private RpcResult rpcResult;
+//    @Autowired
+//    private RpcResult rpcResult;
 
     @Autowired
     private InfraredService infraredService;
@@ -490,7 +490,8 @@ public class DataService {
                 gatewayMethod.setGroupName_CallBack(newGroupName);
                 break;
 
-            case 0x70:
+            case 0x70 :
+                case 0x72:
                 //TODO 设备主动上报（目前只做实验室温湿度传感器和PM2.5传感器） & 红外设备响应
                 Double temperature;
                 Integer humidity;
@@ -521,7 +522,7 @@ public class DataService {
 //                        DeviceTokenRelation parentDevicceTokenRelation = deviceTokenRelationService.getParentDeviceTokenRelationBySAAndEndpoint(shortAddress,endPoint);
                         switch (bytes[21]) {
                             case (byte) 0x81:  // 匹配
-                                rpcResult.setResult(requestId, (int) bytes[24]);
+//                                rpcResult.setResult(requestId, (int) bytes[24]);
                                 resJson.addProperty("match", (int) bytes[24]);
                                 data.addProperty("match", (int) bytes[24]);
                                 if ((int) bytes[24] == 0) {
@@ -552,7 +553,7 @@ public class DataService {
                                 data.addProperty("learn", learnResult);
                                 data.addProperty("key", learnKey);
 
-                                rpcResult.setResult(requestId, learnResult);
+//                                rpcResult.setResult(requestId, learnResult);
 
                                 //保存红外宝学习码
                                 if (learnResult == 0) {
@@ -766,12 +767,13 @@ public class DataService {
                         for (int i = 0; i < Integer.parseInt(String.valueOf(bytes[7])); i++) {
                             if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("D0F0")) {
                                 if (bytes[10 + i * 5] == 0x20) {
-                                    if (Integer.parseInt(String.valueOf(bytes[11 + i * 5])) == 3) {
+                                    if (Integer.parseInt(String.valueOf(bytes[11 + i * 5])) == 3) {  //在网
                                         onlineStatus = 1D;
                                     } else {
                                         onlineStatus = 0D;
                                     }
                                     data.addProperty("online", onlineStatus);
+                                    System.out.println("onlineStatus = " + onlineStatus);
                                 }
                             }
                         }
@@ -1031,9 +1033,6 @@ public class DataService {
                 break;
             case "0101":
                 type = "dimmableLight";
-                break;
-            case "0201":
-                type = "colourDimmableLight";
                 break;
             case "0601":
                 type = "lightSensor";

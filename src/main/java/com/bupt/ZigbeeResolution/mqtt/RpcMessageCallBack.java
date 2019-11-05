@@ -1,7 +1,7 @@
 package com.bupt.ZigbeeResolution.mqtt;
 
 import com.bupt.ZigbeeResolution.common.Common;
-import com.bupt.ZigbeeResolution.common.RpcResult;
+//import com.bupt.ZigbeeResolution.common.RpcResult;
 import com.bupt.ZigbeeResolution.data.Device;
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import com.bupt.ZigbeeResolution.data.Key;
@@ -19,7 +19,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.context.request.async.DeferredResult;
+//import org.springframework.web.context.request.async.DeferredResult;
 
 public class RpcMessageCallBack implements MqttCallback{
 	private String token;
@@ -33,8 +33,8 @@ public class RpcMessageCallBack implements MqttCallback{
 
 	DeviceTokenRelationService deviceTokenRelationService = (DeviceTokenRelationService)SpringUtil.getBean("deviceTokenRelationService");
 
-	@Autowired
-	RpcResult<Integer> rpcResult;
+//	@Autowired
+//	RpcResult<Integer> rpcResult;
 
 	public RpcMessageCallBack(MqttClient rpcMqtt,String token, GatewayGroupService gatewayGroupService, String gatewayName){
 		this.token = token;
@@ -289,9 +289,9 @@ public class RpcMessageCallBack implements MqttCallback{
                 switch (methodName){
 					case "getVersion":
 						gatewayMethod.IR_get_version(controlDevice, ip);
-						DeferredResult<Integer> getVersionRes = rpcResult.createResult(requestId, 2000L, 3);
+//						DeferredResult<Integer> getVersionRes = rpcResult.createResult(requestId, 2000L, 3);
 
-						System.out.println("get version response:" + getVersionRes);
+//						System.out.println("get version response:" + getVersionRes);
 						break;
 
 					case "match":  // 码组匹配
@@ -336,13 +336,16 @@ public class RpcMessageCallBack implements MqttCallback{
 							}
 							// 下发学习指令
 							gatewayMethod.IR_learn(controlDevice, ip, version, type, key);
-							// 新建 DeferredResult 对象, 异步处理进程
-							DeferredResult<Integer> learnRes = rpcResult.createResult(requestId, 2000L, 3);
+//							// 新建 DeferredResult 对象, 异步处理进程
+//							DeferredResult<Integer> learnRes = rpcResult.createResult(requestId, 2000L, 3);
+//
+//							// 添加按键到数据库
+//							if (!learnRes.hasResult()){
+//								return;
+//							}
 
-							// 添加按键到数据库
-							if (!learnRes.hasResult()){
-								return;
-							}
+
+
 							Key k = irService.findAKey(panelId,key);
 							if (k != null){
 								irService.updateKeyName(k.getId(), key_name);
