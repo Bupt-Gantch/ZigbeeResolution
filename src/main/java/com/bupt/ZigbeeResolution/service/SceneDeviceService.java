@@ -27,6 +27,10 @@ public class SceneDeviceService {
         return i==1;
     }
 
+    public Integer deleteSceneDeviceByDeviceId(String deviceId){
+        return sceneDeviceMapper.deleteScenenDeviceByDeviceId(deviceId);
+    }
+
     public SceneDevice getSceneDeviceBySceneIdAndDeviceId(Integer scene_id, String deviceId){
         return sceneDeviceMapper.getSceneDeviceBySceneIdAndDeviceId(scene_id, deviceId);
     }

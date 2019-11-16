@@ -42,11 +42,15 @@ public class SceneSelectorRelationService {
         return sceneSelectorRelationMapper.deleteBindInfoBySceneSelector(sceneSelectorId)==0;
     }
 
-    public Boolean deleteBindInfoByDeviceId(String deviceId){
-        return sceneSelectorRelationMapper.deleteBindInfoByDeviceId(deviceId)==0;
+    public Boolean deleteBindInfoByDeviceOrSelector(String deviceId){
+        return sceneSelectorRelationMapper.deleteBindInfoByDeviceOrSelector(deviceId)==0;
     }
 
-    public List<SceneSelectorRelation> getBindInfoByDeviceId(String deviceId) {
-        return sceneSelectorRelationMapper.getBindInfoByDeviceId(deviceId);
+    public List<SceneSelectorRelation> getBindInfoByDeviceOrSelector(String deviceId) {
+        return sceneSelectorRelationMapper.getBindInfoByDeviceOrSelector(deviceId);
+    }
+
+    public Boolean deleteBindInfoByScene(Integer sceneId){
+        return sceneSelectorRelationMapper.deleteBindInfoByScene(sceneId) == 0;
     }
 }
