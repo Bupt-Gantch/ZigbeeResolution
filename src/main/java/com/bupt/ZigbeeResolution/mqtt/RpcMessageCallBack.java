@@ -384,7 +384,7 @@ public class RpcMessageCallBack implements MqttCallback{
 						version = jsonObject.get("version").getAsString();
 
 						gatewayMethod.IR_delete_learnt_all_key(controlDevice, ip, version);
-						irService.deleteAllKey(controlDevice.getDeviceId());
+						irService.deletePanels(controlDevice.getDeviceId());
 						break;
 
 					case "exit":

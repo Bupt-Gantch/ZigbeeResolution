@@ -30,14 +30,6 @@ public class InfraredService {
         irMapper.insert(deviceId, key, name, matchType, customerId, buttonId, panelId, state);
     }
 
-    public Integer get_maxkey_of_airCondition(String deviceId) {
-        return irMapper.elect_maxkey_of_airCondition(deviceId);
-    }
-
-    public Integer get_maxkey_of_non_airConditon(String deviceId) {
-        return irMapper.select_maxkey_of_non_airCondition(deviceId);
-    }
-
     public Integer get_maxkey(String deviceId){
         return irMapper.select_maxkey(deviceId);
     }
@@ -321,9 +313,16 @@ public class InfraredService {
         }
     }
 
-
     public AirConditionKey getAirConditionKeyAttributes(Integer id){
         return irMapper.select_airconditionKey_attributes(id);
+    }
+
+    public Integer get_maxkey_of_airCondition(String deviceId) {
+        return irMapper.elect_maxkey_of_airCondition(deviceId);
+    }
+
+    public Integer get_maxkey_of_non_airConditon(String deviceId) {
+        return irMapper.select_maxkey_of_non_airCondition(deviceId);
     }
 
 }
