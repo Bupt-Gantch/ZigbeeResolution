@@ -17,6 +17,9 @@ public interface SceneDeviceMapper {
     @Delete("DELETE FROM sceneDevice WHERE scene_id = #{scene_id}")
     Integer deleteScenenDeviceBySceneId(@Param("scene_id") Integer scene_id);
 
+    @Delete("DELETE FROM `scenedevice` WHERE deviceId = #{deviceId}")
+    Integer deleteScenenDeviceByDeviceId(@Param("deviceId")String deviceId);
+
     @Select("SELECT * FROM sceneDevice WHERE scene_id = #{scene_id} AND deviceId = #{deviceId}")
     SceneDevice getSceneDeviceBySceneIdAndDeviceId(@Param("scene_id") Integer scene_id,@Param("deviceId") String deviceId);
 

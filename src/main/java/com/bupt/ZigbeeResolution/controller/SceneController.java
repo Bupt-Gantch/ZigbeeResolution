@@ -6,9 +6,11 @@ import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.service.*;
 import com.bupt.ZigbeeResolution.utils.Operation;
 import com.google.gson.*;
+import org.eclipse.paho.client.mqttv3.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,6 +48,7 @@ public class SceneController{
             JsonObject jsonObject = (JsonObject)new JsonParser().parse(sceneInfo);
             String sceneNickName = jsonObject.get("sceneName").getAsString();
             Integer customerId = jsonObject.get("customerId").getAsInt();
+
             Scene scene = sceneService.getSceneBySceneName(sceneNickName+"_"+customerId);
             Integer scene_id;
             if(scene==null) {
@@ -62,10 +65,23 @@ public class SceneController{
             for(JsonElement jsonElement:sceneArray){
                 JsonObject deviceInfo = jsonElement.getAsJsonObject();
                 String deviceId = deviceInfo.get("deviceId").getAsString();
+
+                // 检查设备是否存在
                 DeviceTokenRelation deviceRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
+                if (deviceRelation == null) {
+                    logger.error(String.format("device %s does not exist", deviceId));
+                    return "fail";
+                }
+
+                // 检查网关是否在线
+                String ip = gatewayGroupService.getGatewayIp(deviceRelation.getShortAddress(), deviceRelation.getEndPoint());
+                if (Strings.isEmpty(ip)) {
+                    logger.warn(String.format("gateway_%s is offline", deviceRelation.getGatewayName()));
+                    return "fail";
+                }
 
                 if(!gatewayName.equals("") && !gatewayName.equals(deviceRelation.getGatewayName())){
-                    return "error";
+                    return "fail";
                 }
 
                 gatewayName = deviceRelation.getGatewayName();
@@ -91,7 +107,6 @@ public class SceneController{
                 byte data3 =(byte)(0xFF & deviceInfo.get("data3").getAsInt());
                 byte data4 =(byte)(0xFF & deviceInfo.get("data4").getAsInt());
 
-                String ip = gatewayGroupService.getGatewayIp(deviceRelation.getShortAddress(), deviceRelation.getEndPoint());
 
                 GatewayMethod gatewayMethod = new GatewayMethodImpl();
                 gatewayMethod.addScene(device, data1, data2, data3, data4, "scene"+scene_id,(byte)0x00, (byte)0x01,(byte)0x00, ip);
@@ -106,6 +121,7 @@ public class SceneController{
             }
             sceneService.updateGatewayName(gatewayName, scene_id);
             return  "success";
+
         } catch (JsonSyntaxException e) {
             e.printStackTrace();
             return "fail";
@@ -209,37 +225,47 @@ public class SceneController{
 
     @Operation(name="删除场景")
     @RequestMapping(value="/deleteScene/{scene_id}", method = RequestMethod.DELETE)
+    @Transactional
     @ResponseBody
     public String deleteScene(@PathVariable("scene_id")Integer scene_id){
+
+        Device device = new Device();
+        device.setShortAddress("FFFF");
+        device.setEndpoint((byte)0xFF);
+
         try {
             Scene scene = sceneService.getSceneBySceneId(scene_id);
-            Device device = new Device();
-            device.setShortAddress("FFFF");
-            device.setEndpoint((byte)0xFF);
+            if (scene == null) {
+                logger.error(String.format("scene %s does not exist", scene_id));
+                return "fail";
+            }
 
             GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(scene.getGatewayName());
             if (gatewayGroup == null){
-                logger.warn("gateway[%s] is offline", scene.getGatewayName());
-                return "error";
+                logger.warn(String.format("gateway_%s is offline", scene.getGatewayName()));
+                return "fail";
             }
             String ip = gatewayGroup.getIp();
-
 
             GatewayMethod gatewayMethod = new GatewayMethodImpl();
             gatewayMethod.deleteSceneMember(scene, device, ip);
 
             if(!sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)){
                 logger.error("database operation exception: fail to delete record in sceneDevice.");
-                //System.err.println("删除场景设备错误！");
-                //return "error";
+            }
+
+            //sceneRelationService.removeSceneRelation(scene_id);
+
+            if (!sceneSelectorRelationService.deleteBindInfoByScene(scene_id)) {
+                logger.error("database operation exception: fail to delete record in sceneSelectorRelation.");
             }
 
             if(!sceneService.deleteSceneBySceneId(scene_id)){
                 logger.error("database operation exception: fail to delete record in scene.");
-                //System.err.println("删除场景错误！");
-                //return "error";
             }
+
             return "success";
+
         } catch (Exception e) {
             e.printStackTrace();
             return "fail";
@@ -300,8 +326,7 @@ public class SceneController{
             GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(scene.getGatewayName());
 
             if (gatewayGroup == null){
-                logger.warn("Gateway[%s] is offline", scene.getGatewayName());
-                //System.err.println("网关不在线");
+                logger.warn(String.format("Gateway_%s is offline", scene.getGatewayName()));
                 return "error";
             }
 

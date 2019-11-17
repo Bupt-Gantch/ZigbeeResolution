@@ -6,22 +6,15 @@ import com.bupt.ZigbeeResolution.data.GatewayGroup;
 import com.bupt.ZigbeeResolution.data.SceneSelectorRelation;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
-import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
-import com.bupt.ZigbeeResolution.service.GatewayGroupService;
-import com.bupt.ZigbeeResolution.service.SceneSelectorRelationService;
+import com.bupt.ZigbeeResolution.service.*;
 import com.bupt.ZigbeeResolution.utils.Operation;
 import com.google.gson.*;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Operation(name="物接入")
@@ -38,56 +31,71 @@ public class DeviceController {
     @Autowired
     private SceneSelectorRelationService sceneSelectorRelationService;
 
+    @Autowired
+    private SceneDeviceService sceneDeviceService;
+
+    @Autowired
+    private SceneService sceneService;
+
+    @Autowired
+    private InfraredService infraredService;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Operation(name="删除设备")
     @RequestMapping(value = "/deleteDevice/{deviceId}", method = RequestMethod.DELETE)
-    @ResponseBody
     @Transactional
     public String deleteDevice(@PathVariable("deviceId")String deviceId ){
 
         try {
             DeviceTokenRelation singleDeviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
-            System.out.println("singleDeviceTokenRelation = " + singleDeviceTokenRelation);
             if (singleDeviceTokenRelation == null) {
-                logger.warn("device %s not exists", deviceId);
+                logger.warn(String.format("device %s does not exists", deviceId));
                 return "error";
             }
 
-            GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(singleDeviceTokenRelation.getGatewayName());
-            GatewayMethod gatewayMethod = new GatewayMethodImpl();
-            if(gatewayGroup == null || gatewayGroup.getIp()==null){
-                logger.warn("Gateway " + singleDeviceTokenRelation.getGatewayName() + " is offline");
-                return "error";
-            }
+//            GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(singleDeviceTokenRelation.getGatewayName());
+//            GatewayMethod gatewayMethod = new GatewayMethodImpl();
+//            if(gatewayGroup == null || Strings.isEmpty(gatewayGroup.getIp())){
+//                logger.warn("Gateway " + singleDeviceTokenRelation.getGatewayName() + " is offline");
+//                return "error";
+//            }
 
             Device device = new Device();
             device.setShortAddress(singleDeviceTokenRelation.getShortAddress());
             device.setEndpoint(singleDeviceTokenRelation.getEndPoint().byteValue());
             device.setIEEE(singleDeviceTokenRelation.getIEEE());
 
-            // 删除设备
-            gatewayMethod.deleteDevice(device, gatewayGroup.getIp());
+            // 下发删除设备指令
+//            gatewayMethod.deleteDevice(device, gatewayGroup.getIp());
 
-            // 删除场景
             List<DeviceTokenRelation> allDevices = deviceTokenRelationService.getRelationByIEEE(singleDeviceTokenRelation.getIEEE());
             for(DeviceTokenRelation eachDevice: allDevices){
-                if(sceneSelectorRelationService.getBindInfoByDeviceId(eachDevice.getUuid()).size() == 0 ){
+
+                String type = eachDevice.getType();
+
+                if (type.equals("newInfrared")) {  // 如果是红外宝，删除红外宝学习面板
+                    infraredService.deletePanels(eachDevice.getUuid());
+                } else if (type.equals("IASZone") || type.equals("PM2.5")) { // 传感器不关联规则和场景
                     continue;
                 }
-                if(sceneSelectorRelationService.deleteBindInfoByDeviceId(eachDevice.getUuid())){
-                    logger.error("database operation exception: fail to delete record in senceSelectorRelation");
-                    return "error";
-                }
+
+                // 删除场景
+                sceneDeviceService.deleteSceneDeviceByDeviceId(eachDevice.getUuid());
+
+                sceneSelectorRelationService.deleteBindInfoByDeviceOrSelector(eachDevice.getUuid());
+
+                sceneService.deleteSceneByDeviceSelectorId(eachDevice.getUuid());
+
+                // TODO 删除规则
+
             }
-            System.out.println("删除场景成功");
 
             // 删除设备token
             if(!deviceTokenRelationService.deleteDeviceByIEEE(singleDeviceTokenRelation.getIEEE())){
                 logger.error("database operation exception: fail to delete record in deviceTokenRelation");
                 return "error";
             }
-            System.out.println("删除token成功");
             logger.info("delete device successfully.");
 
             /**
@@ -120,9 +128,9 @@ public class DeviceController {
 //            }
 //        }
 
-
             return "success";
         } catch (Exception e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
             return "fail";
         }

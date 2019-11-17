@@ -599,7 +599,7 @@ public class DataService {
                             case (byte) 0x86:  // 删除该红外设备全部已学习数据
                                 resJson.addProperty("deleteAll", 0);
                                 data.addProperty("deleteAll", 0);
-                                infraredService.deleteAllKey(deviceTokenRelation.getUuid());//删除全部
+                                infraredService.deletePanels(deviceTokenRelation.getUuid());//删除全部
                                 System.out.println("********************* 删除该红外设备全部数据成功 *********************");
                                 break;
                             case (byte) 0x8A:

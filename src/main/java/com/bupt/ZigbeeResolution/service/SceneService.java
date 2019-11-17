@@ -40,6 +40,10 @@ public class SceneService {
         return i==1;
     }
 
+    public Integer deleteSceneByDeviceSelectorId(String deviceId){
+        return sceneMapper.deleteSceneByDeviceSelectorId(deviceId);
+    }
+
     public Boolean updateSceneSelector(String sceneSelectorId, Integer scene_id){
         Integer i = sceneMapper.updateSceneSelector(sceneSelectorId,scene_id);
         return  i==1;

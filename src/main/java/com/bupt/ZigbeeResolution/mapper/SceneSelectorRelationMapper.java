@@ -26,7 +26,7 @@ public interface SceneSelectorRelationMapper {
     Integer getBindTypeBySceneSelectorId(@Param("sceneSelectorId") String sceneSelectorId);
 
     @Select("SELECT * FROM sceneSelectorRelation WHERE deviceId = #{deviceId} or sceneSelectorId = #{deviceId}")
-    List<SceneSelectorRelation> getBindInfoByDeviceId(@Param("deviceId")String deviceId);
+    List<SceneSelectorRelation> getBindInfoByDeviceOrSelector(@Param("deviceId")String deviceId);
 
     @Delete("DELETE FROM sceneSelectorRelation WHERE sceneSelectorId = #{sceneSelectorId} AND deviceId = #{deviceId}")
     Integer deleteBindInfo(@Param("sceneSelectorId") String sceneSelectorId, @Param("deviceId") String deviceId);
@@ -35,5 +35,8 @@ public interface SceneSelectorRelationMapper {
     Integer deleteBindInfoBySceneSelector(@Param("sceneSelectorId") String sceneSelectorId);
 
     @Delete("DELETE FROM sceneSelectorRelation WHERE deviceId = #{deviceId} or sceneSelectorId = #{deviceId} ")
-    Integer deleteBindInfoByDeviceId(@Param("deviceId") String deviceId);
+    Integer deleteBindInfoByDeviceOrSelector(@Param("deviceId") String deviceId);
+
+    @Delete("DELETE FROM sceneSelectorRelation WHERE scene_id = #{sceneId}")
+    Integer deleteBindInfoByScene(@Param("sceneId")Integer sceneId);
 }

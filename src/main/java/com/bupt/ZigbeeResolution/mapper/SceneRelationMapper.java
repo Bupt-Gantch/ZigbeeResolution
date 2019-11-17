@@ -12,6 +12,6 @@ public interface SceneRelationMapper {
     @Select("SELECT side_scene_id FROM sceneRelation Where main_scene_id = #{main_scene_id}")
     List<Integer> getRelatedSceneId(@Param("main_scene_id")Integer main_scene_id);
 
-    @Delete("DELETE FROM sceneRelation WHERE main_scene_id = #{main_scene_id}")
+    @Delete("DELETE FROM sceneRelation WHERE main_scene_id = #{main_scene_id} OR side_scene_id=#{main_scene_id}" )
     Integer removeRelation (@Param("main_scene_id")Integer main_scene_id);
 }
