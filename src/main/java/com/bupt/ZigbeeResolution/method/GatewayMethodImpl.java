@@ -1864,8 +1864,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements GatewayMethod 
                     Double humidity = data.get("humidity").getAsDouble();
                     JsonWebSocket.addProperty("humidity", humidity);
 
-                    if (temperature > (-20) && temperature < 60 && humidity > 10 && humidity < 50) {
-                        JsonWebSocket.addProperty("state", 0);   //温度在-20摄氏度~60摄氏度,湿度在20%~50%为正常
+                    if (temperature > (-20) && temperature < 60 && humidity < 5 ) {
+                        JsonWebSocket.addProperty("state", 0);   //温度在-20摄氏度~60摄氏度,湿度小于5%为正常
                     } else {
                         JsonWebSocket.addProperty("state", 1);
                     }
@@ -1886,7 +1886,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements GatewayMethod 
                     System.out.println(JsonWebSocket.toString());
                     myWebsocketServer.sendAllMessage(JsonWebSocket.toString());
                     break;
-                case "311057b0-90d1-11e9-b21a-2fa071b4c282"://水浸传感器
+                case "e74e6830-0ac2-11ea-8ed8-9b8a84d51816"://水浸传感器
                     JsonWebSocket.addProperty("timestamp", System.currentTimeMillis());
                     JsonWebSocket.addProperty("location", "pipeline4");
                     JsonWebSocket.addProperty("type", "water");
