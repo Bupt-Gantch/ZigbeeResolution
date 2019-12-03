@@ -17,7 +17,7 @@ public interface SceneDeviceMapper {
     @Delete("DELETE FROM sceneDevice WHERE scene_id = #{scene_id}")
     Integer deleteScenenDeviceBySceneId(@Param("scene_id") Integer scene_id);
 
-    @Delete("DELETE FROM `scenedevice` WHERE deviceId = #{deviceId}")
+    @Delete("DELETE FROM `sceneDevice` WHERE deviceId = #{deviceId}")
     Integer deleteScenenDeviceByDeviceId(@Param("deviceId")String deviceId);
 
     @Select("SELECT * FROM sceneDevice WHERE scene_id = #{scene_id} AND deviceId = #{deviceId}")
@@ -25,4 +25,7 @@ public interface SceneDeviceMapper {
 
     @Update("UPDATE sceneDevice SET data1 = #{data1}, data2 = #{data2}, data3 = #{data3}, data4 = #{data4} WHERE scene_id = #{scene_id} AND deviceId = #{deviceId}")
     Integer updateSceneDevice(SceneDevice sceneDevice);
+
+    @Select("SELECT *  FROM `sceneDevice` WHERE deviceId = #{deviceId}")
+    List<SceneDevice> getSceneDevicesByDeviced(@Param("deviceId")String deviceId);
 }
