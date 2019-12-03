@@ -65,7 +65,6 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         // 保存网关 channel
         SocketServer.getMap().put(getIPString(ctx), ctx.channel());
         Channel channel = ctx.channel();
-
         // 向网关发送 LoginMessage
         bt = getSendContent(80, LoginMessage.getBytes());
         channel.write(bt);
@@ -90,7 +89,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         // 从 Map 中移除网关 channel
         String gatewayName = gatewayGroupService.getGatewayNameByIp(ip.substring(1));
         if(gatewayName!=null){
-            gatewayGroupService.removeGatewayGroupByIp(ip.substring(1));
+//            gatewayGroupService.removeGatewayGroupByIp(ip.substring(1));
             SocketServer.getMap().remove(getIPString(ctx));
 
             mqttMap.get(gatewayName).disconnect();
@@ -110,7 +109,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                 System.out.println("设备超时下线:"+ip.substring(1));
                 String gatewayName = gatewayGroupService.getGatewayNameByIp(ip.substring(1));
                 if(gatewayName!=null){
-                    gatewayGroupService.removeGatewayGroupByIp(ip.substring(1));
+//                    gatewayGroupService.removeGatewayGroupByIp(ip.substring(1));
                     SocketServer.getMap().remove(getIPString(ctx));
 
                     mqttMap.get(gatewayName).disconnect();

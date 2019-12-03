@@ -39,4 +39,8 @@ public class SceneDeviceService {
         Integer i = sceneDeviceMapper.updateSceneDevice(sceneDevice);
         return  i==1;
     }
+
+    public List<SceneDevice> getSceneDevicesByDeviced(String uuid) {
+        return sceneDeviceMapper.getSceneDevicesByDeviced(uuid);
+    }
 }
