@@ -60,7 +60,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
 
-        System.out.println("网关 " + getIPString(ctx) + " 连接成功");
+        System.out.println(String.format("网关连接成功，ip:%s, 正在发送登录验证消息...", getIPString(ctx)));
 
         // 保存网关 channel
         SocketServer.getMap().put(getIPString(ctx), ctx.channel());
@@ -85,24 +85,26 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // 网关 channel 关闭 （断电，断网...）
         String ip =getRemoteAddress(ctx);
-        System.out.println("设备下线:"+ip.substring(1));
-
-        // 从 Map 中移除网关 channel
+        System.out.println("网关断开连接, ip:"+ip.substring(1));
+        
         String gatewayName = gatewayGroupService.getGatewayNameByIp(ip.substring(1));
         if(gatewayName!=null){
+            // 从 Map 中移除网关 channel
             gatewayGroupService.removeGatewayGroupByIp(ip.substring(1));
             SocketServer.getMap().remove(getIPString(ctx));
 
+            // 断开连接并关闭mqtt客户端
             mqttMap.get(gatewayName).disconnect();
             mqttMap.get(gatewayName).close();
             mqttMap.remove(gatewayName);
         }
+        // 等待 channel 关闭
         ctx.close().sync();
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception{
-        System.out.println("已经60秒未收到客户端的消息了！");
+        System.out.println("已经60秒未收到网关的消息了，强制超时下线!");
         if (evt instanceof IdleStateEvent){
             IdleStateEvent event = (IdleStateEvent)evt;
             if (event.state()== IdleState.READER_IDLE){
@@ -170,7 +172,8 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     */
                     name = name.trim();
                     GatewayGroup gatewayGroup = new GatewayGroup(name, ips, ctxip);
-                    System.out.println(ctx.toString() + "网关 " + name + " 登录成功");
+                    
+                    // todo 完善网关在线判断逻辑
                     if(gatewayGroupService.getGatewayGroup(name)!=null){
                         gatewayGroupService.removeGatewayGroupByName(name);
                     }
@@ -178,6 +181,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
                     DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByGatewayNameAndEndPoint(name, 0);
                     if(deviceTokenRelation == null){  // 网关未接入过平台
+                        System.out.println(String.format("新网关接入，ip:%s，name:%s", ip, name));
                         //hc.httplogin();
                         // 调用 deviceaccess 接口创建设备 TODO 以后改成RPC调用
                         String id = hc.httpcreate("Gateway_"+name, "","Gateway", "");
@@ -198,6 +202,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         DataMessageClient.publishAttribute(id,data.toString());
 
                     }else{ // 网关已接入平台，重新入网
+                        System.out.println(String.format("网关上线，ip:%s, name:%s",ip, name));
                         // 重新初始化 mqtt 客户端
                         RpcMqttClient rpcMqttClient = new RpcMqttClient(deviceTokenRelation.getGatewayName(), deviceTokenRelation.getToken(), gatewayGroupService);
                         rpcMqttClient.init();
@@ -208,6 +213,8 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     bt = getSendContent(10, LoginControlMessage.getBytes());
                     channelgroups.add(channel);
                     ch.writeAndFlush(bt);
+    
+                    System.out.println(String.format("网关登录成功 ip:%s, name:%s 正在查询网关下所有设备...", ctx.toString(), name));
 
                     // 发送查询网关下所有设备指令
                     gatewayMethod.getAllDevice(ips);
@@ -243,7 +250,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.err.println("客户端 " + getRemoteAddress(ctx) + " 关闭了连接");
+        System.err.println(String.format("网关连接异常，正在关闭...  ip:%s", getRemoteAddress(ctx)));
     }
 
     public String bytesToHexFun3(byte[] bytes) {

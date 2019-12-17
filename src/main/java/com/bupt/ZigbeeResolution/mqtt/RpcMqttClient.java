@@ -16,7 +16,6 @@ import java.nio.charset.Charset;
 public class RpcMqttClient {
 
 //    public static String rpcToken = "gbNJ8K5a0Hggwd66vHqn";
-//    public static String RPC_TOPIC = "v1/devices/me/rpc/request/+";
     private MqttClient rpcMqtt;
     private String gatewayName;
     private String token;
@@ -30,6 +29,7 @@ public class RpcMqttClient {
 
     public boolean init() {
         if(gatewayGroupService.getGatewayGroup(gatewayName)!=null){
+            System.out.println(String.format("初始化mqtt客户端, 网关名:%s", gatewayName));
             try{
                 if(rpcMqtt!=null){
                     rpcMqtt.close();
@@ -44,13 +44,15 @@ public class RpcMqttClient {
                 optionforRpcMqtt.setUserName(token);
                 rpcMqtt.setCallback(new RpcMessageCallBack(rpcMqtt, token, gatewayGroupService, gatewayName));
                 rpcMqtt.connect(optionforRpcMqtt);
+                System.out.println(String.format("mqtt客户端连接成功，server:%s, token:%s", Config.HOST, token));
                 rpcMqtt.subscribe(Config.RPC_TOPIC,0);
+                System.out.println(String.format("mqtt客户端订阅成功, topic:%s", Config.RPC_TOPIC));
             }catch(Exception e){
                 e.printStackTrace();
                 return false;
             }
         }else{
-            System.out.println("网关已下线");
+            System.err.println(String.format("网关[%s]已下线", gatewayName));
         }
         return true;
     }

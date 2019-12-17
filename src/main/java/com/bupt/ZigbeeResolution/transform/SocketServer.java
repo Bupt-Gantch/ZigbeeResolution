@@ -65,6 +65,7 @@ public class SocketServer {
 
     @PostConstruct
     public void start() throws Exception{
+        System.out.println(String.format("正在初始化 netty 服务端..."));
         bossGroup = new NioEventLoopGroup(bossGroupThreadCount);
         workerGroup = new NioEventLoopGroup(workerGroupThreadCount);
         ServerBootstrap b = new ServerBootstrap();
@@ -89,15 +90,18 @@ public class SocketServer {
         //b.bind(port);
         // Start the server.
         serverChannel = b.bind(port).sync().channel();
+        System.out.println(String.format("netty 服务端初始化完成，端口：%s", port));
     }
 
     @PreDestroy
     public void shutdown() throws InterruptedException {
         try {
+            System.err.println("netty 服务端正在关闭 ...");
             serverChannel.close().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            System.err.println("netty 服务端关闭成功");
         }
     }
 
