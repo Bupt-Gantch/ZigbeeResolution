@@ -47,93 +47,93 @@ public class DeviceController {
     @Transactional
     public String deleteDevice(@PathVariable("deviceId") String deviceId) {
 
-        return "success";
-//        try {
-//            DeviceTokenRelation singleDeviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
-//            System.out.println("singleDeviceTokenRelation = " + singleDeviceTokenRelation);
-//            if (singleDeviceTokenRelation == null) {
-//                logger.warn(String.format("device %s does not exists", deviceId));
-//                return "error";
-//            }
-//
-//            GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(singleDeviceTokenRelation.getGatewayName());
-//            GatewayMethod gatewayMethod = new GatewayMethodImpl();
-//            if (gatewayGroup == null || Strings.isEmpty(gatewayGroup.getIp())) {
-//                logger.warn("Gateway " + singleDeviceTokenRelation.getGatewayName() + " is offline");
-//                return "error";
-//            }
-//
-//            Device device = new Device();
-//            device.setShortAddress(singleDeviceTokenRelation.getShortAddress());
-//            device.setEndpoint(singleDeviceTokenRelation.getEndPoint().byteValue());
-//            device.setIEEE(singleDeviceTokenRelation.getIEEE());
-//
-//            // 下发删除设备指令
-//            gatewayMethod.deleteDevice(device, gatewayGroup.getIp());
-//
-//            List<DeviceTokenRelation> allDevices = deviceTokenRelationService.getRelationByIEEE(singleDeviceTokenRelation.getIEEE());
-//            for (DeviceTokenRelation eachDevice : allDevices) {
-//                String type = eachDevice.getType();
-//                // 红外宝、传感器、情景开关 不关联规则和场景
-//                if (type.equals("sceneSelector")) {
-//                    sceneSelectorRelationService.deleteBindInfoByDeviceOrSelector(eachDevice.getUuid());
-//                    System.out.println("****************删除情景开关成功*******************");
-//                    continue;
-//                } else if (type.equals("newInfrared")) {
-//                    infraredService.deletePanels(eachDevice.getUuid());
-//                    System.out.println("****************删除红外宝学习面板成功*******************");
-//                    continue;
-//                } else if (type.equals("IASZone") || type.equals("PM2.5")) {
-//                    System.out.println("****************传感器*******************");
-//                    continue;
-//                }
-//
-//                List<SceneDevice> sceneDevices = sceneDeviceService.getSceneDevicesByDeviced(eachDevice.getUuid());
-//                List<Integer> scene_ids = new ArrayList<>();
-//                for (SceneDevice sceneDevice : sceneDevices) {
-//                    scene_ids.add(sceneDevice.getScene_id());
-//                }
-//
-//                for (Integer scene_id : scene_ids) {
-//                    Device device2 = new Device();
-//                    device2.setShortAddress("FFFF");
-//                    device2.setEndpoint((byte) 0xFF);
-//
-//                    Scene scene = sceneService.getSceneBySceneId(scene_id);
-//                    if (scene == null) {
-//                        logger.error(String.format("scene %s does not exist", scene_id));
-//                    }
-//
-//                        String ip = gatewayGroup.getIp();
-//                        gatewayMethod.deleteSceneMember(scene, device, ip);
-//
-//                    //删除场景设备
-//                    if (!sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)) {
-//                        logger.error("database operation exception: fail to delete record in sceneDevice.");
-//                    }
-//                    //删除场景
-//                    if (!sceneService.deleteSceneBySceneId(scene_id)) {
-//                        logger.error("database operation exception: fail to delete record in scene.");
-//                    }
-//                }
-//                System.out.println("****************删除设备绑定的场景成功*******************");
-//
-//                sceneSelectorRelationService.deleteBindInfoByDeviceOrSelector(eachDevice.getUuid());
-//                System.out.println("****************删除设备与情景开关的绑定成功*******************");
-//            }
-//
-//
-//            if (deviceTokenRelationService.deleteDeviceByIEEE2(singleDeviceTokenRelation.getIEEE()) == 0) {
-//                logger.error("database operation exception: fail to delete record in deviceTokenRelation");
-//                return "error";
-//            }
-//
-//            System.out.println("****************删除设备成功*******************");
-//            logger.info("delete device successfully.");
 
-            /**
-             *   当删除cassandra数据库记录失败时，mysql 数据库发生回滚
-             */
+        try {
+            DeviceTokenRelation singleDeviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
+            System.out.println("singleDeviceTokenRelation = " + singleDeviceTokenRelation);
+            if (singleDeviceTokenRelation == null) {
+                logger.warn(String.format("device %s does not exists", deviceId));
+                return "error";
+            }
+
+            GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(singleDeviceTokenRelation.getGatewayName());
+            GatewayMethod gatewayMethod = new GatewayMethodImpl();
+            if (gatewayGroup == null || Strings.isEmpty(gatewayGroup.getIp())) {
+                logger.warn("Gateway " + singleDeviceTokenRelation.getGatewayName() + " is offline");
+                return "error";
+            }
+
+            Device device = new Device();
+            device.setShortAddress(singleDeviceTokenRelation.getShortAddress());
+            device.setEndpoint(singleDeviceTokenRelation.getEndPoint().byteValue());
+            device.setIEEE(singleDeviceTokenRelation.getIEEE());
+
+            // 下发删除设备指令
+            gatewayMethod.deleteDevice(device, gatewayGroup.getIp());
+
+            List<DeviceTokenRelation> allDevices = deviceTokenRelationService.getRelationByIEEE(singleDeviceTokenRelation.getIEEE());
+            for (DeviceTokenRelation eachDevice : allDevices) {
+                String type = eachDevice.getType();
+                // 红外宝、传感器、情景开关 不关联规则和场景
+                if (type.equals("sceneSelector")) {
+                    sceneSelectorRelationService.deleteBindInfoByDeviceOrSelector(eachDevice.getUuid());
+                    logger.info("****************删除情景开关成功*******************");
+                    continue;
+                } else if (type.equals("newInfrared")) {
+                    infraredService.deletePanels(eachDevice.getUuid());
+                    logger.info("****************删除红外宝学习面板成功*******************");
+                    continue;
+                } else if (type.equals("IASZone") || type.equals("PM2.5")) {
+                    logger.info("****************传感器*******************");
+                    continue;
+                }
+
+                List<SceneDevice> sceneDevices = sceneDeviceService.getSceneDevicesByDeviced(eachDevice.getUuid());
+                List<Integer> scene_ids = new ArrayList<>();
+                for (SceneDevice sceneDevice : sceneDevices) {
+                    scene_ids.add(sceneDevice.getScene_id());
+                }
+
+                for (Integer scene_id : scene_ids) {
+                    Device device2 = new Device();
+                    device2.setShortAddress("FFFF");
+                    device2.setEndpoint((byte) 0xFF);
+
+                    Scene scene = sceneService.getSceneBySceneId(scene_id);
+                    if (scene == null) {
+                        logger.error(String.format("scene %s does not exist", scene_id));
+                    }
+
+                        String ip = gatewayGroup.getIp();
+                        gatewayMethod.deleteSceneMember(scene, device, ip);
+
+                    //删除场景设备
+                    if (!sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)) {
+                        logger.error("database operation exception: fail to delete record in sceneDevice.");
+                    }
+                    //删除场景
+                    if (!sceneService.deleteSceneBySceneId(scene_id)) {
+                        logger.error("database operation exception: fail to delete record in scene.");
+                    }
+                }
+                logger.info("****************删除设备绑定的场景成功*******************");
+
+                sceneSelectorRelationService.deleteBindInfoByDeviceOrSelector(eachDevice.getUuid());
+                logger.info("****************删除设备与情景开关的绑定成功*******************");
+            }
+
+
+            if (deviceTokenRelationService.deleteDeviceByIEEE2(singleDeviceTokenRelation.getIEEE()) == 0) {
+                logger.error("database operation exception: fail to delete record in deviceTokenRelation");
+                return "error";
+            }
+
+            System.out.println("****************删除设备成功*******************");
+            logger.info("delete device successfully.");
+
+//            /**
+//             *   当删除cassandra数据库记录失败时，mysql 数据库发生回滚
+//             */
 
             // 查找其余设备的uuid
 //        List<String> uuidList = new ArrayList<>();
@@ -161,12 +161,12 @@ public class DeviceController {
 //            }
 //        }
 
-//            return "success";
-//        } catch (Exception e) {
-//            logger.error(e.getMessage());
-//            e.printStackTrace();
-//            return "fail";
-//        }
+            return "success";
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+            return "fail";
+        }
     }
 
     @Operation(name = "设备入网")
