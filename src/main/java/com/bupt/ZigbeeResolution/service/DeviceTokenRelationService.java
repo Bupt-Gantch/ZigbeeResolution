@@ -5,12 +5,13 @@ import com.bupt.ZigbeeResolution.mapper.DeviceTokenRelationMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @Service
 public class DeviceTokenRelationService {
 
-    @Autowired
+    @Resource
     private DeviceTokenRelationMapper deviceTokenRelationMapper;
 
     public DeviceTokenRelation getRelotionByIEEEAndEndPoint(String IEEE, Integer endPoint){
@@ -61,5 +62,9 @@ public class DeviceTokenRelationService {
 
     public List<DeviceTokenRelation> getRelationByIEEE(String IEEE){
         return deviceTokenRelationMapper.getRelationByIEEE(IEEE);
+    }
+
+    public Integer deleteDeviceByIEEE2(String IEEE){
+        return deviceTokenRelationMapper.deleteDeviceByIEEE(IEEE);
     }
 }

@@ -44,4 +44,5 @@ public interface DeviceTokenRelationMapper {
 
     @Delete("DELETE FROM deviceTokenRelation WHERE IEEE = #{IEEE}")
     Integer deleteDeviceByIEEE(@Param("IEEE")String IEEE);
+
 }

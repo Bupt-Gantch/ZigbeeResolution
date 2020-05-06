@@ -13,13 +13,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mysql.cj.util.StringUtils;
 import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Component
+@Slf4j
 public class GatewayMethodImpl extends OutBoundHandler implements GatewayMethod {
     @Autowired
     MyWebsocketServer myWebsocketServer;
@@ -941,7 +943,14 @@ public class GatewayMethodImpl extends OutBoundHandler implements GatewayMethod 
         bytes[index] = device.getEndpoint();
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+        log.info("ip: "+ip);
+        for (Map.Entry<String, Channel> stringChannelEntry : SocketServer.getMap().entrySet()) {
+            log.info("key:"+stringChannelEntry.getKey());
+            log.info("value:"+stringChannelEntry.getValue());
+        }
+        if(SocketServer.getMap().get(ip)!=null){
+            SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+        }
     }
 
     public void setDeviceState(Device device, byte state, String ip) {
@@ -1864,8 +1873,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements GatewayMethod 
                     Double humidity = data.get("humidity").getAsDouble();
                     JsonWebSocket.addProperty("humidity", humidity);
 
-                    if (temperature > (-20) && temperature < 60 && humidity > 10 && humidity < 50) {
-                        JsonWebSocket.addProperty("state", 0);   //温度在-20摄氏度~60摄氏度,湿度在20%~50%为正常
+                    if (temperature > (-20) && temperature < 60 && humidity < 5 ) {
+                        JsonWebSocket.addProperty("state", 0);   //温度在-20摄氏度~60摄氏度,湿度小于5%为正常
                     } else {
                         JsonWebSocket.addProperty("state", 1);
                     }
@@ -1886,7 +1895,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements GatewayMethod 
                     System.out.println(JsonWebSocket.toString());
                     myWebsocketServer.sendAllMessage(JsonWebSocket.toString());
                     break;
-                case "311057b0-90d1-11e9-b21a-2fa071b4c282"://水浸传感器
+                case "e74e6830-0ac2-11ea-8ed8-9b8a84d51816"://水浸传感器
                     JsonWebSocket.addProperty("timestamp", System.currentTimeMillis());
                     JsonWebSocket.addProperty("location", "pipeline4");
                     JsonWebSocket.addProperty("type", "water");
