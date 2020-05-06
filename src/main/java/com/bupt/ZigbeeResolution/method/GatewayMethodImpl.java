@@ -13,13 +13,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mysql.cj.util.StringUtils;
 import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Component
+@Slf4j
 public class GatewayMethodImpl extends OutBoundHandler implements GatewayMethod {
     @Autowired
     MyWebsocketServer myWebsocketServer;
@@ -941,7 +943,14 @@ public class GatewayMethodImpl extends OutBoundHandler implements GatewayMethod 
         bytes[index] = device.getEndpoint();
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+        log.info("ip: "+ip);
+        for (Map.Entry<String, Channel> stringChannelEntry : SocketServer.getMap().entrySet()) {
+            log.info("key:"+stringChannelEntry.getKey());
+            log.info("value:"+stringChannelEntry.getValue());
+        }
+        if(SocketServer.getMap().get(ip)!=null){
+            SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+        }
     }
 
     public void setDeviceState(Device device, byte state, String ip) {
