@@ -1,7 +1,6 @@
 package com.bupt.ZigbeeResolution.mqtt;
 
 import com.bupt.ZigbeeResolution.common.Common;
-//import com.bupt.ZigbeeResolution.common.RpcResult;
 import com.bupt.ZigbeeResolution.data.Device;
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import com.bupt.ZigbeeResolution.data.Key;
@@ -18,8 +17,6 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.web.context.request.async.DeferredResult;
 
 public class RpcMessageCallBack implements MqttCallback{
 	private String token;

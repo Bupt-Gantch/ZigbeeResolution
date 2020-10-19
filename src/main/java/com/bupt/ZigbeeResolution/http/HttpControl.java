@@ -4,15 +4,29 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import okhttp3.*;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+//@PropertySource("classpath:application.yml")
+@Component
 public class HttpControl {
+    
+    @Value("${app.deviceaccess.host}")
+    private String device_access_host;
+    @Value("${app.deviceaccess.port}")
+    private String device_access_port;
+    
+//    private String DEVICE_URL = String.format("http://%s:%s/api/v1/deviceaccess/", this.device_access_host, this.device_access_port);
+    private String DEVICE_URL = "http://47.105.120.203:8100/api/v1/deviceaccess/";
     static private Cookie ck;
-    private String host = "10.108.218.64";
     private static String session;
     public static String id;
     public String deviceToken;
@@ -35,23 +49,23 @@ public class HttpControl {
             })
             .build();
 
-    public void httplogin() throws IOException {
-        RequestBody loginBody = RequestBody.create(js, "{\"userName\":\"Gantch@bupt.edu.cn\",\"passwd\":\"password\"}");
-
-        final Request requestRegister = new Request.Builder().url("http://10.108.218.64/api/user/login").header("Accept", "text/plain, */*; q=0.01").addHeader("Connection", "keep-alive").addHeader("Content-Type", "application/json; charset=UTF-8").post(loginBody).build();
-
-        Response response = mOkHttpClient.newCall(requestRegister).execute();
-        if (response.isSuccessful()) {
-            Headers headers = response.headers();
-            ck = cookieStore.get(host).get(0);
-
-            String sessionStr = ck.toString();
-            session = sessionStr.substring(0, sessionStr.indexOf(";"));
-
-            System.out.println("Login ck is :" + ck);
-            System.out.println("Login session is :" + session);
-        }
-    }
+//    public void httplogin() throws IOException {
+//        RequestBody loginBody = RequestBody.create(js, "{\"userName\":\"Gantch@bupt.edu.cn\",\"passwd\":\"password\"}");
+//
+//        final Request requestRegister = new Request.Builder().url("http://10.108.218.64/api/user/login").header("Accept", "text/plain, */*; q=0.01").addHeader("Connection", "keep-alive").addHeader("Content-Type", "application/json; charset=UTF-8").post(loginBody).build();
+//
+//        Response response = mOkHttpClient.newCall(requestRegister).execute();
+//        if (response.isSuccessful()) {
+//            Headers headers = response.headers();
+//            ck = cookieStore.get(host).get(0);
+//
+//            String sessionStr = ck.toString();
+//            session = sessionStr.substring(0, sessionStr.indexOf(";"));
+//
+//            System.out.println("Login ck is :" + ck);
+//            System.out.println("Login session is :" + session);
+//        }
+//    }
  /*
     创建新设备的post请求
      */
@@ -74,7 +88,8 @@ public class HttpControl {
 
         //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。
         Request requestCreate = new Request.Builder()
-                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device")
+//                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device")
+                .url(DEVICE_URL + "device")
                 .post(bodyCreate)
                 .addHeader("Accept","application/json, text/plain, */*")
 //                .addHeader("Accept","text/plain, */*, q=0.01")
@@ -107,7 +122,8 @@ public class HttpControl {
 
         //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。
         Request requestCreate = new Request.Builder()
-                .url("http://47.105.120.203:30080/api/v1/deviceaccess/credentialbyid/" + id.toString())
+//                .url("http://47.105.120.203:30080/api/v1/deviceaccess/credentialbyid/" + id.toString())
+                .url(DEVICE_URL + "credentialbyid/" + id)
                 .get()
                 .addHeader("Accept", "application/json, text/plain, */*")
                 .addHeader("Connection", "keep-alive")
@@ -136,7 +152,8 @@ public class HttpControl {
      */
     public String httpGetDevice(String id) throws Exception{
         Request requestCreate = new Request.Builder()
-                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device/" + id)
+//                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device/" + id)
+                .url(DEVICE_URL+"device/" + id)
                 .get()
                 .addHeader("Accept", "application/json, text/plain, */*")
                 .addHeader("Connection", "keep-alive")
@@ -162,7 +179,8 @@ public class HttpControl {
         RequestBody bodyCreate = RequestBody.create(js, deviceInfo);
 
         Request requestCreate = new Request.Builder()
-                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device")
+//                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device")
+                .url(DEVICE_URL + "device")
                 .post(bodyCreate)
                 .addHeader("Accept","application/json, text/plain, */*")
 //                .addHeader("Accept","text/plain, */*, q=0.01")

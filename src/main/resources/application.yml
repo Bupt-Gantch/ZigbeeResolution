@@ -9,6 +9,14 @@ socket:
     boss_group_thread_count: 1
     worker_group_thread_count: 12
 
+app:
+  deviceaccess:
+    host: 47.105.120.203
+    port: 8100
+  mqtt:
+    host: 47.105.120.203
+    port: 1883
+
 spring:
   application:
     name: ZigbeeResolution
