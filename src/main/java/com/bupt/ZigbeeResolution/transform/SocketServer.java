@@ -26,43 +26,43 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class SocketServer {
-
+    
     @Autowired
     private UserService userService;
-
+    
     @Autowired
     private GatewayGroupService gatewayGroupService;
-
+    
     @Autowired
     private DeviceTokenRelationService deviceTokenRelationService;
-
+    
     @Autowired
     private SceneService sceneService;
-
+    
     @Autowired
     private SceneRelationService sceneRelationService;
-
+    
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
     private static Map<String, byte[]> messageMap = new ConcurrentHashMap<String, byte[]>();
-
+    
     private Channel serverChannel;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
-
+    
     @Value("${socket.bind_address}")
     private String host;
     @Value("${socket.bind_port}")
     private Integer port;
 //    @Value("${mqtt.adaptor}")
 //    private String adaptorName;
-
+    
     @Value("${socket.netty.leak_detector_level}")
     private String leakDetectorLevel;
     @Value("${socket.netty.boss_group_thread_count}")
     private Integer bossGroupThreadCount;
     @Value("${socket.netty.worker_group_thread_count}")
     private Integer workerGroupThreadCount;
-
+    
     @PostConstruct
     public void start() throws Exception{
         System.out.println(String.format("正在初始化 netty 服务端..."));
@@ -92,7 +92,7 @@ public class SocketServer {
         serverChannel = b.bind(port).sync().channel();
         System.out.println(String.format("netty 服务端初始化完成，端口：%s", port));
     }
-
+    
     @PreDestroy
     public void shutdown() throws InterruptedException {
         try {
@@ -104,15 +104,15 @@ public class SocketServer {
             System.err.println("netty 服务端关闭成功");
         }
     }
-
+    
     public static Map<String, Channel> getMap() {
         return map;
     }
-
+    
     public static void setMap(Map<String, Channel> map) {
         SocketServer.map = map;
     }
-
+    
     public static String bytesToHexString(byte[] src){
         StringBuilder stringBuilder = new StringBuilder();
         if (src == null || src.length <= 0) {
@@ -129,14 +129,14 @@ public class SocketServer {
         }
         return stringBuilder.toString();
     }
-
+    
     /**
      * @return the messageMap
      */
     public static Map<String, byte[]> getMessageMap() {
         return messageMap;
     }
-
+    
     /**
      * @param messageMap the messageMap to set
      */

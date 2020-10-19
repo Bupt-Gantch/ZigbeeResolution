@@ -656,6 +656,10 @@ public class DataService {
                                 if (bytes[10 + i * 5] == 0x29) {  // 数据类型: uint16
                                     humidity = dataBytesToInt(Arrays.copyOfRange(bytes, 11 + i * 5, 13 + i * 5));
                                     data.addProperty("humidity", humidity.doubleValue());
+                                }else if (bytes[10 + i * 5] == 0x21) { //TODO 新版中 0x21数据类型才是上报湿度信息 2020-7-14 16:51:09
+                                    humidity = dataBytesToInt(Arrays.copyOfRange(bytes, 11 + i * 5, 13 + i * 5));
+                                    data.addProperty("humidity", humidity.doubleValue());
+                                    System.out.println("走到了0x21数据为:" + humidity);
                                 }
                             }
                         }
